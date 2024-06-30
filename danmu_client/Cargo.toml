@@ -1,0 +1,18 @@
+[package]
+name = "danmu_client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.118"
+tokio = { version = "1.38.0", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "cookies"] }
+futures-util = { version = "0.3.30", features = ["sink"]  }
+parse = {path = "../parse"}
+log = "0.4.21"
+pretty_env_logger = "0.5.0"
+anyhow = { version = "1.0.86", features = ["backtrace"] }
+owo-colors = "3"
+chrono = "0.4.38"
+cookie = "0.18"

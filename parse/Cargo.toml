@@ -1,0 +1,13 @@
+[package]
+name = "parse"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { version = "1.0.86", features = ["backtrace"] }
+brotli = "6.0.0"
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.118"
+unescape = "*"
+log = "0.4.21"
+chrono = "0.4.38"

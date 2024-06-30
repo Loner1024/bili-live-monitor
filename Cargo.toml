@@ -1,0 +1,4 @@
+[workspace]
+members = [ "danmu_client","parse"]
+
+resolver = "2"
