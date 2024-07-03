@@ -1,16 +1,16 @@
 use anyhow::Result;
+use cookie::Cookie;
+use log::{error, info};
+use parse::{parse_message, Message};
 use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 use std::str;
 use std::time::Duration;
-use log::{error, info};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use tokio::sync::mpsc::Receiver;
 use tokio::sync::mpsc;
+use tokio::sync::mpsc::Receiver;
 use tokio::time;
-use parse::{Message, parse_message};
-use cookie::Cookie;
 
 // const HOST: &str = "broadcastlv.chat.bilibili.com";
 // const PORT: u16 = 2243;
@@ -28,8 +28,8 @@ impl Clinet {
         let mut headers = HeaderMap::new();
         headers.insert("Cookie", cookies.parse()?);
         let cookies = Cookie::split_parse(cookies.to_string());
-        let mut uid= 0;
-        let mut buvid=  String::new();
+        let mut uid = 0;
+        let mut buvid = String::new();
         for cookie in cookies {
             let cookie = cookie?;
             match cookie.name() {
@@ -168,11 +168,7 @@ impl Clinet {
             .await?;
         Ok(resp)
     }
-
 }
-
-
-
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

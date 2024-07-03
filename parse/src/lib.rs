@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Result};
+use chrono::Utc;
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::io::Read;
 use std::str;
-use log::{debug, error};
-use chrono::Utc;
 
 #[derive(Debug, Clone)]
 pub struct DanmuMessage {
@@ -23,7 +23,7 @@ pub struct EnterRoomMessage {
 
 #[derive(Debug, Clone)]
 pub struct OnlineCountMessage {
-    pub count:u64,
+    pub count: u64,
     pub timestamp: u64,
 }
 
@@ -49,7 +49,7 @@ impl TryFrom<&[u8]> for Message {
     type Error = anyhow::Error;
 
     fn try_from(data: &[u8]) -> std::result::Result<Self, Self::Error> {
-        let s= str::from_utf8(data).map_err(|e| anyhow!("utf8 error: {}", e))?;
+        let s = str::from_utf8(data).map_err(|e| anyhow!("utf8 error: {}", e))?;
         let bili_message = serde_json::from_str::<BiliMessage>(&s)?;
         match bili_message.cmd.as_ref().unwrap().as_str() {
             "DANMU_MSG" => bili_message.get_danmu_mesage(),
@@ -58,16 +58,21 @@ impl TryFrom<&[u8]> for Message {
             "ONLINE_RANK_COUNT" => bili_message.get_online_count(),
 
             // ignore
-            "WATCHED_CHANGE" | "ENTRY_EFFECT" |
-            "DM_INTERACTION" | "WIDGET_BANNER" |
-            "ONLINE_RANK_V2" | "NOTICE_MSG" |
-            "LIKE_INFO_V3_CLICK" | "STOP_LIVE_ROOM_LIST" |
-            "RECOMMEND_CARD" | "LIKE_INFO_V3_UPDATE" => Ok(Message::Default),
+            "WATCHED_CHANGE"
+            | "ENTRY_EFFECT"
+            | "DM_INTERACTION"
+            | "WIDGET_BANNER"
+            | "ONLINE_RANK_V2"
+            | "NOTICE_MSG"
+            | "LIKE_INFO_V3_CLICK"
+            | "STOP_LIVE_ROOM_LIST"
+            | "RECOMMEND_CARD"
+            | "LIKE_INFO_V3_UPDATE" => Ok(Message::Default),
 
             _ => {
                 debug!("Unsupported message: {}", s);
                 Ok(Message::Default)
-            },
+            }
         }
     }
 }
@@ -80,8 +85,8 @@ fn parse_brotli_packet(_header: Header, packet: &[u8]) -> Result<Vec<Message>> {
     let mut chunks = Vec::new();
     loop {
         let header = parse_header(&packet[offset..offset + 16]);
-        if offset+16 > packet.len() || offset+header.total_size as usize > packet.len() {
-            break
+        if offset + 16 > packet.len() || offset + header.total_size as usize > packet.len() {
+            break;
         }
         let body = &packet[offset + 16..offset + header.total_size as usize];
         chunks.push((header.clone(), body));
@@ -93,11 +98,13 @@ fn parse_brotli_packet(_header: Header, packet: &[u8]) -> Result<Vec<Message>> {
 
     for (header, body) in chunks {
         match Message::try_from(body) {
-            Ok(message) => {
-                result.push(message)
-            },
-            Err(e) =>     {
-                error!("Failed to parse message: {}, header: {:?},", e, header.clone());
+            Ok(message) => result.push(message),
+            Err(e) => {
+                error!(
+                    "Failed to parse message: {}, header: {:?},",
+                    e,
+                    header.clone()
+                );
             }
         }
     }
@@ -123,7 +130,7 @@ pub fn parse_message(header: Header, origin_data: &[u8]) -> Result<Vec<Message>>
         1 | 0 => Ok(vec![parse_command_packet(origin_data)?]),
         3 => parse_brotli_packet(header, origin_data),
         _ => Err(anyhow!("Unsupported protocol")),
-    }
+    };
 }
 
 fn brotli_decode(data: &[u8]) -> Result<Vec<u8>> {
@@ -171,7 +178,6 @@ pub struct Certificate {
     pub key: String, // 从 https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={room_id}&type=0 获取
 }
 
-
 pub fn build_auth_packet(certificate: &Certificate) -> Vec<u8> {
     let body = serde_json::to_vec(certificate).unwrap();
     build_packet(1, 7, &body)
@@ -192,7 +198,6 @@ pub fn build_packet(protocol: u16, msg_type: u32, body: &[u8]) -> Vec<u8> {
     packet.extend_from_slice(body); // body
     packet
 }
-
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -235,10 +240,7 @@ impl BiliMessage {
         if self.cmd != Some("DANMU_MSG".to_string()) {
             return Err(anyhow!("Not a Danmu message"));
         }
-        let danmu = self
-            .info
-            .as_ref()
-            .ok_or(anyhow!("Failed to get info"))?;
+        let danmu = self.info.as_ref().ok_or(anyhow!("Failed to get info"))?;
         let uid = danmu[2][0].as_u64().ok_or(anyhow!("Failed to get uid"))?;
         let username = danmu[2][1]
             .as_str()
@@ -247,7 +249,7 @@ impl BiliMessage {
         let timestamp = danmu[0][4]
             .as_u64()
             .ok_or(anyhow!("Failed to get timestamp"))?;
-        Ok(Message::Danmu(DanmuMessage{
+        Ok(Message::Danmu(DanmuMessage {
             uid,
             username: username.to_string(),
             msg: msg.to_string(),
@@ -263,10 +265,10 @@ impl BiliMessage {
         let user_info = data.uinfo.ok_or(anyhow!("Failed to get uinfo"))?;
         let timestamp = data.timestamp.ok_or(anyhow!("Failed to get timestamp"))?;
 
-        Ok(Message::EnterRoom(EnterRoomMessage{
+        Ok(Message::EnterRoom(EnterRoomMessage {
             uid: user_info.uid,
             username: user_info.base.name,
-            timestamp
+            timestamp,
         }))
     }
 
@@ -275,9 +277,11 @@ impl BiliMessage {
             return Err(anyhow!("Not a online count message"));
         }
         let data = self.data.ok_or(anyhow!("Failed to get data"))?;
-        Ok(Message::OnlineCount(OnlineCountMessage{
-            count: data.online_count.ok_or(anyhow!("Failed to get online count"))?,
-            timestamp: Utc::now().timestamp_millis() as u64
+        Ok(Message::OnlineCount(OnlineCountMessage {
+            count: data
+                .online_count
+                .ok_or(anyhow!("Failed to get online count"))?,
+            timestamp: Utc::now().timestamp_millis() as u64,
         }))
     }
 
@@ -287,11 +291,14 @@ impl BiliMessage {
         }
         let data = self.data.ok_or(anyhow!("Failed to get data"))?;
         let user_info = data.uinfo.ok_or(anyhow!("Failed to get uinfo"))?;
-        Ok(Message::SuperChat(SuperChatMessage{
+        Ok(Message::SuperChat(SuperChatMessage {
             uid: user_info.uid,
             username: user_info.base.name,
             msg: data.message.ok_or(anyhow!("Failed to get data"))?,
-            timestamp: data.send_time.ok_or(anyhow!("Failed to get send_time"))?.to_string(),
+            timestamp: data
+                .send_time
+                .ok_or(anyhow!("Failed to get send_time"))?
+                .to_string(),
             worth: data.price.ok_or(anyhow!("Failed to get worth"))? as u32,
         }))
     }

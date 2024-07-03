@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
-use parse::Message;
-use owo_colors::OwoColorize;
 use danmu_client::danmu::Clinet;
+use owo_colors::OwoColorize;
+use parse::Message;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -15,40 +15,40 @@ async fn main() -> anyhow::Result<()> {
 
     while let Some(message) = rx.recv().await {
         print_danmu(message);
-    };
+    }
 
     Ok(())
 }
 
 fn print_danmu(message: Message) {
-        match message {
-            Message::Danmu(message) => {
-                let datetime_local = timestamp_to_local_time(message.timestamp);
-                println!(
-                    "[{}] - {}: {}",
-                    datetime_local.format("%H:%M:%S").bright_yellow(),
-                    message.username.purple(),
-                    message.msg.green()
-                );
-            }
-            Message::EnterRoom(enter_room) => {
-                let datetime_local = timestamp_to_local_time(enter_room.timestamp * 1000);
-                println!(
-                    "[{}] - {} 进入房间",
-                    datetime_local.format("%H:%M:%S").bright_yellow(),
-                    enter_room.username.purple()
-                );
-            }
-            Message::OnlineCount(online_count) => {
-                let datetime_local = timestamp_to_local_time(online_count.timestamp);
-                println!(
-                    "[{}] - 当前在线人数: {}",
-                    datetime_local.format("%H:%M:%S").bright_yellow(),
-                    online_count.count
-                );
-            }
-            _ => {}
+    match message {
+        Message::Danmu(message) => {
+            let datetime_local = timestamp_to_local_time(message.timestamp);
+            println!(
+                "[{}] - {}: {}",
+                datetime_local.format("%H:%M:%S").bright_yellow(),
+                message.username.purple(),
+                message.msg.green()
+            );
         }
+        Message::EnterRoom(enter_room) => {
+            let datetime_local = timestamp_to_local_time(enter_room.timestamp * 1000);
+            println!(
+                "[{}] - {} 进入房间",
+                datetime_local.format("%H:%M:%S").bright_yellow(),
+                enter_room.username.purple()
+            );
+        }
+        Message::OnlineCount(online_count) => {
+            let datetime_local = timestamp_to_local_time(online_count.timestamp);
+            println!(
+                "[{}] - 当前在线人数: {}",
+                datetime_local.format("%H:%M:%S").bright_yellow(),
+                online_count.count
+            );
+        }
+        _ => {}
+    }
 }
 
 fn timestamp_to_local_time(timestamp: u64) -> DateTime<Local> {
