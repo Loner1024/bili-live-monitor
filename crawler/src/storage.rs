@@ -116,11 +116,10 @@ impl<'a> Storage<'a> {
             .load(atomic::Ordering::SeqCst)
             >= 1000
         {
-            self.super_chat_message_buffer.flush()?;
+            self.flush()?;
             self.super_chat_message_buffer_size
                 .store(0, atomic::Ordering::SeqCst);
         }
-
         Ok(())
     }
 
@@ -138,7 +137,7 @@ impl<'a> Storage<'a> {
             .load(atomic::Ordering::SeqCst)
             >= 1000
         {
-            self.danmu_message_buffer.flush()?;
+            self.flush()?;
             self.danmu_message_buffer_size
                 .store(0, atomic::Ordering::SeqCst);
         }
@@ -173,11 +172,12 @@ impl<'a> Storage<'a> {
         Ok(())
     }
 
-    pub fn persist(&mut self) -> Result<()> {
-        // merge data
+    pub fn flush(&mut self) -> Result<()> {
+        self.super_chat_message_buffer.flush()?;
+        self.danmu_message_buffer.flush()?;
+        self.merge_data_and_persist("super_chat")?;
+        self.merge_data_and_persist("danmu")?;
 
-        self.conn
-            .execute("COPY danmu TO 'data.parquet' (FORMAT 'parquet')", [])?;
         Ok(())
     }
 }
