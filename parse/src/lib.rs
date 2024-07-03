@@ -32,8 +32,8 @@ pub struct SuperChatMessage {
     pub uid: u64,
     pub username: String,
     pub msg: String,
-    pub timestamp: String,
-    pub worth: u32,
+    pub timestamp: u64,
+    pub worth: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -221,7 +221,7 @@ pub struct BiliMessageData {
     pub online_count: Option<u64>,
     pub send_time: Option<u64>,
     pub message: Option<String>,
-    pub price: Option<u32>,
+    pub price: Option<f64>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -295,11 +295,8 @@ impl BiliMessage {
             uid: user_info.uid,
             username: user_info.base.name,
             msg: data.message.ok_or(anyhow!("Failed to get data"))?,
-            timestamp: data
-                .send_time
-                .ok_or(anyhow!("Failed to get send_time"))?
-                .to_string(),
-            worth: data.price.ok_or(anyhow!("Failed to get worth"))? as u32,
+            timestamp: data.send_time.ok_or(anyhow!("Failed to get send_time"))?,
+            worth: data.price.ok_or(anyhow!("Failed to get worth"))?,
         }))
     }
 }
