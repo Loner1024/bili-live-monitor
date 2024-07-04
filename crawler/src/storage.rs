@@ -21,7 +21,7 @@ pub struct OssConfig {
     region: String,
     key: String,
     secret: String,
-    bucket: String
+    bucket: String,
 }
 
 impl OssConfig {
@@ -88,10 +88,22 @@ impl<'a> Storage<'a> {
         let super_chat_target = format!("s3://{}/{}/super_chat.parquet", bucket, date);
         let danmu_target = format!("s3://{}/{}/danmu.parquet", bucket, date);
         // check file exists
-        if conn.execute(&format!("SELECT COUNT(*) as count FROM '{super_chat_target}'"), []).is_err() {
+        if conn
+            .execute(
+                &format!("SELECT COUNT(*) as count FROM '{super_chat_target}'"),
+                [],
+            )
+            .is_err()
+        {
             conn.execute(&format!("COPY super_chat TO '{super_chat_target}'"), [])?;
         }
-        if conn.execute(&format!("SELECT COUNT(*) as count FROM '{danmu_target}'"), []).is_err() {
+        if conn
+            .execute(
+                &format!("SELECT COUNT(*) as count FROM '{danmu_target}'"),
+                [],
+            )
+            .is_err()
+        {
             conn.execute(&format!("COPY danmu TO '{danmu_target}'"), [])?;
         }
 

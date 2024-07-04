@@ -305,7 +305,6 @@ impl BiliMessage {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;

@@ -10,7 +10,8 @@ use parse::Message;
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenv().ok();
-    pretty_env_logger::init();
+    pretty_env_logger::init_timed();
+
     // 初始化 DuckDB
     let conn = Connection::open_in_memory()?;
     let mut current_time = Local::now().date_naive();
