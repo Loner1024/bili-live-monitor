@@ -100,10 +100,13 @@ fn parse_brotli_packet(_header: Header, packet: &[u8]) -> Result<Vec<Message>> {
         match Message::try_from(body) {
             Ok(message) => result.push(message),
             Err(e) => {
+                let mut body_hex_str = String::from("");
+                body_hex_str.extend(body.iter().map(|b| format!("{:02X}", b)));
                 error!(
-                    "Failed to parse message: {}, header: {:?},",
+                    "Failed to parse message: {}, header: {:?}, body: {}",
                     e,
-                    header.clone()
+                    header.clone(),
+                    body_hex_str
                 );
             }
         }
@@ -206,6 +209,7 @@ pub struct BiliMessage {
     pub dm_v2: Option<String>,
     pub info: Option<Vec<Value>>,
     pub data: Option<BiliMessageData>,
+    pub send_time: Option<u64>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -219,7 +223,6 @@ pub struct BiliMessageData {
     pub uinfo: Option<Uinfo>,
     pub timestamp: Option<u64>,
     pub online_count: Option<u64>,
-    pub send_time: Option<u64>,
     pub message: Option<String>,
     pub price: Option<f64>,
 }
@@ -295,7 +298,7 @@ impl BiliMessage {
             uid: user_info.uid,
             username: user_info.base.name,
             msg: data.message.ok_or(anyhow!("Failed to get data"))?,
-            timestamp: data.send_time.ok_or(anyhow!("Failed to get send_time"))?,
+            timestamp: self.send_time.ok_or(anyhow!("Failed to get send_time"))?,
             worth: data.price.ok_or(anyhow!("Failed to get worth"))?,
         }))
     }

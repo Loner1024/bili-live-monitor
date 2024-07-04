@@ -1,7 +1,7 @@
 use anyhow::Result;
-use dotenv::dotenv;
+use chrono::NaiveDate;
 use duckdb::{params, Appender, Connection};
-use log::debug;
+use log::{debug, info};
 use parse::{DanmuMessage, SuperChatMessage};
 use std::env;
 use std::sync::atomic;
@@ -13,6 +13,7 @@ pub struct Storage<'a> {
     super_chat_message_buffer: Appender<'a>,
     super_chat_message_buffer_size: atomic::AtomicI32,
     bucket: String,
+    date: String,
 }
 
 pub struct OssConfig {
@@ -20,27 +21,28 @@ pub struct OssConfig {
     region: String,
     key: String,
     secret: String,
+    bucket: String
 }
 
 impl OssConfig {
     pub fn new() -> Result<Self> {
-        dotenv().ok();
         let endpoint = env::var("OSS_ENDPOINT")?;
         let region = env::var("OSS_REGION")?;
         let key = env::var("OSS_KEY")?;
         let secret = env::var("OSS_SECRET")?;
+        let bucket = env::var("OSS_BUCKET")?;
         Ok(Self {
             endpoint,
             region,
             key,
             secret,
+            bucket,
         })
     }
 }
 
 impl<'a> Storage<'a> {
-    fn new(conn: &'a Connection) -> Result<Self> {
-        Self::init_table(conn)?;
+    pub fn new(conn: &'a Connection, date: NaiveDate) -> Result<Self> {
         let oss_config = OssConfig::new()?;
         Self::init_oss(
             conn,
@@ -49,17 +51,20 @@ impl<'a> Storage<'a> {
             oss_config.key.as_str(),
             oss_config.secret.as_str(),
         )?;
+        let date = date.format("%Y-%m-%d").to_string();
+        Self::init_table(conn, &oss_config.bucket, &date)?;
         Ok(Self {
             conn,
             danmu_message_buffer: conn.appender("danmu")?,
             danmu_message_buffer_size: atomic::AtomicI32::new(0),
             super_chat_message_buffer: conn.appender("super_chat")?,
             super_chat_message_buffer_size: atomic::AtomicI32::new(0),
-            bucket: "bili-data-1255746465".to_string(),
+            bucket: oss_config.bucket,
+            date,
         })
     }
 
-    fn init_table(conn: &Connection) -> Result<()> {
+    fn init_table(conn: &Connection, bucket: &str, date: &str) -> Result<()> {
         conn.execute(
             "CREATE TABLE super_chat (
                 uid BIGINT,
@@ -79,6 +84,17 @@ impl<'a> Storage<'a> {
             )",
             [],
         )?;
+
+        let super_chat_target = format!("s3://{}/{}/super_chat.parquet", bucket, date);
+        let danmu_target = format!("s3://{}/{}/danmu.parquet", bucket, date);
+        // check file exists
+        if conn.execute(&format!("SELECT COUNT(*) as count FROM '{super_chat_target}'"), []).is_err() {
+            conn.execute(&format!("COPY super_chat TO '{super_chat_target}'"), [])?;
+        }
+        if conn.execute(&format!("SELECT COUNT(*) as count FROM '{danmu_target}'"), []).is_err() {
+            conn.execute(&format!("COPY danmu TO '{danmu_target}'"), [])?;
+        }
+
         Ok(())
     }
 
@@ -114,7 +130,7 @@ impl<'a> Storage<'a> {
         if self
             .super_chat_message_buffer_size
             .load(atomic::Ordering::SeqCst)
-            >= 1000
+            >= 10
         {
             self.flush()?;
             self.super_chat_message_buffer_size
@@ -124,6 +140,11 @@ impl<'a> Storage<'a> {
     }
 
     pub fn create_danmu_message(&mut self, message: DanmuMessage) -> Result<()> {
+        debug!(
+            "receive danmu count: {}",
+            self.danmu_message_buffer_size
+                .load(atomic::Ordering::SeqCst)
+        );
         self.danmu_message_buffer.append_row(params![
             message.uid,
             message.username,
@@ -135,7 +156,7 @@ impl<'a> Storage<'a> {
         if self
             .danmu_message_buffer_size
             .load(atomic::Ordering::SeqCst)
-            >= 1000
+            >= 100
         {
             self.flush()?;
             self.danmu_message_buffer_size
@@ -145,7 +166,7 @@ impl<'a> Storage<'a> {
     }
 
     fn merge_data_and_persist(&self, table_name: &str) -> Result<()> {
-        let persist_target = format!("s3://{}/{}.parquet", self.bucket, table_name);
+        let persist_target = format!("s3://{}/{}/{}.parquet", self.bucket, self.date, table_name);
         // check persist target exists
         if let Err(e) = self.conn.execute(
             &format!("SELECT COUNT(*) as count FROM '{persist_target}'"),
@@ -177,6 +198,7 @@ impl<'a> Storage<'a> {
         self.danmu_message_buffer.flush()?;
         self.merge_data_and_persist("super_chat")?;
         self.merge_data_and_persist("danmu")?;
+        info!("flush success");
 
         Ok(())
     }
@@ -185,10 +207,12 @@ impl<'a> Storage<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Utc;
+    use chrono::{Local, Utc};
+    use dotenv::dotenv;
 
     fn init() {
         pretty_env_logger::init();
+        dotenv().ok();
     }
 
     #[test]
@@ -202,7 +226,7 @@ mod tests {
             msg: "Hello, Bilibili".to_string(),
             timestamp: now.timestamp_millis() as u64,
         };
-        let mut storage = Storage::new(&conn).unwrap();
+        let mut storage = Storage::new(&conn, Local::now().date_naive()).unwrap();
         for _ in 0..1000 {
             storage.create_danmu_message(danmu.clone()).unwrap();
         }
@@ -238,7 +262,7 @@ mod tests {
             timestamp: now.timestamp_millis() as u64,
             worth: 100.0,
         };
-        let mut storage = Storage::new(&conn).unwrap();
+        let mut storage = Storage::new(&conn, Local::now().date_naive()).unwrap();
         for _ in 0..1000 {
             storage
                 .crate_super_chat_message(super_chat.clone())
@@ -277,7 +301,7 @@ mod tests {
             msg: "Hello, Bilibili".to_string(),
             timestamp: now.timestamp_millis() as u64,
         };
-        let mut storage = Storage::new(&conn).unwrap();
+        let mut storage = Storage::new(&conn, Local::now().date_naive()).unwrap();
         for _ in 0..1000 {
             storage.create_danmu_message(danmu.clone()).unwrap();
         }

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use cookie::Cookie;
-use log::{error, info};
+use log::{debug, error, info};
 use parse::{parse_message, Message};
 use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
@@ -95,9 +95,9 @@ impl Clinet {
             loop {
                 let heartbeat_packet = parse::build_hearbeat_packet();
                 if let Err(e) = writer.write_all(&heartbeat_packet).await {
-                    info!("Failed to send heartbeat packet: {}", e);
+                    error!("Failed to send heartbeat packet: {}", e);
                 } else {
-                    info!("Heartbeat packet sent");
+                    debug!("Heartbeat packet sent");
                 }
                 time::sleep(Duration::from_secs(30)).await;
             }
