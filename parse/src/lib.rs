@@ -209,6 +209,7 @@ pub struct BiliMessage {
     pub dm_v2: Option<String>,
     pub info: Option<Vec<Value>>,
     pub data: Option<BiliMessageData>,
+    #[serde(rename = "send_time")]
     pub send_time: Option<u64>,
 }
 
@@ -301,5 +302,18 @@ impl BiliMessage {
             timestamp: self.send_time.ok_or(anyhow!("Failed to get send_time"))?,
             worth: data.price.ok_or(anyhow!("Failed to get worth"))?,
         }))
+    }
+}
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_parse_super_chat_message() {
+        let message_str = r##"{"cmd":"SUPER_CHAT_MESSAGE","data":{"background_bottom_color":"#2A60B2","background_color":"#EDF5FF","background_color_end":"#405D85","background_color_start":"#3171D2","background_icon":"","background_image":"","background_price_color":"#7497CD","color_point":0.7,"dmscore":952,"end_time":1720068385,"gift":{"gift_id":12000,"gift_name":"醒目留言","num":1},"group_medal":{"is_lighted":0,"medal_id":0,"name":""},"id":10007772,"is_mystery":false,"is_ranked":0,"is_send_audit":0,"medal_info":{"anchor_roomid":22747736,"anchor_uname":"不死鸟总监","guard_level":3,"icon_id":0,"is_lighted":1,"medal_color":"#1a544b","medal_color_border":6809855,"medal_color_end":5414290,"medal_color_start":1725515,"medal_level":22,"medal_name":"这是卢","special":"","target_id":406986743},"message":"你是托？你是托？你是托？你是托？你是托？","message_font_color":"#A3F6FF","message_trans":"","price":30,"rate":1000,"start_time":1720068325,"time":60,"token":"DEF34BBE","trans_mark":0,"ts":1720068325,"uid":257575729,"uinfo":{"base":{"face":"https://i1.hdslb.com/bfs/face/156c2109d35123b91daf59a868fa622fcd08f2ab.jpg","is_mystery":false,"name":"mmzero023","name_color":0,"name_color_str":"#00D1F1","official_info":{"desc":"","role":0,"title":"","type":-1},"origin_info":{"face":"https://i1.hdslb.com/bfs/face/156c2109d35123b91daf59a868fa622fcd08f2ab.jpg","name":"mmzero023"},"risk_ctrl_info":null},"guard":{"expired_str":"2024-07-19 23:59:59","level":3},"guard_leader":null,"medal":{"color":1725515,"color_border":6809855,"color_end":5414290,"color_start":1725515,"guard_icon":"https://i0.hdslb.com/bfs/live/143f5ec3003b4080d1b5f817a9efdca46d631945.png","guard_level":3,"honor_icon":"","id":0,"is_light":1,"level":22,"name":"这是卢","ruid":406986743,"score":50003760,"typ":0,"user_receive_count":0,"v2_medal_color_border":"#5FC7F4FF","v2_medal_color_end":"#43B3E3CC","v2_medal_color_level":"#00308C99","v2_medal_color_start":"#43B3E3CC","v2_medal_color_text":"#FFFFFFFF"},"title":{"old_title_css_id":"","title_css_id":""},"uhead_frame":null,"uid":257575729,"wealth":null},"user_info":{"face":"https://i1.hdslb.com/bfs/face/156c2109d35123b91daf59a868fa622fcd08f2ab.jpg","face_frame":"https://i0.hdslb.com/bfs/live/80f732943cc3367029df65e267960d56736a82ee.png","guard_level":3,"is_main_vip":0,"is_svip":0,"is_vip":0,"level_color":"#5896de","manager":0,"name_color":"#00D1F1","title":"","uname":"mmzero023","user_level":25}},"is_report":true,"msg_id":"16522645609146368:1000:1000","p_is_ack":true,"p_msg_type":1,"send_time":1720068325513}"##;
+        let message: BiliMessage = serde_json::from_str(message_str).unwrap();
+        println!("{:?}", message);
     }
 }
