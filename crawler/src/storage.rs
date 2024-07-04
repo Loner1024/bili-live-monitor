@@ -133,8 +133,6 @@ impl<'a> Storage<'a> {
             >= 10
         {
             self.flush()?;
-            self.super_chat_message_buffer_size
-                .store(0, atomic::Ordering::SeqCst);
         }
         Ok(())
     }
@@ -159,8 +157,6 @@ impl<'a> Storage<'a> {
             >= 100
         {
             self.flush()?;
-            self.danmu_message_buffer_size
-                .store(0, atomic::Ordering::SeqCst);
         }
         Ok(())
     }
@@ -196,6 +192,10 @@ impl<'a> Storage<'a> {
     pub fn flush(&mut self) -> Result<()> {
         self.super_chat_message_buffer.flush()?;
         self.danmu_message_buffer.flush()?;
+        self.super_chat_message_buffer_size
+            .store(0, atomic::Ordering::SeqCst);
+        self.danmu_message_buffer_size
+            .store(0, atomic::Ordering::SeqCst);
         self.merge_data_and_persist("super_chat")?;
         self.merge_data_and_persist("danmu")?;
         info!("flush success");
