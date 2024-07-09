@@ -16,3 +16,4 @@ anyhow = { version = "1.0.86", features = ["backtrace"] }
 owo-colors = "3"
 chrono = "0.4.38"
 cookie = "0.18"
+dotenv = "0.15.0"

@@ -2,9 +2,11 @@ use chrono::{DateTime, Local};
 use danmu_client::danmu::Clinet;
 use owo_colors::OwoColorize;
 use parse::Message;
+use dotenv::dotenv;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenv().ok();
     pretty_env_logger::init();
     let cookies = std::env::var("BILI_COOKIE").unwrap();
 

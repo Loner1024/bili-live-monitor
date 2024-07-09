@@ -86,7 +86,7 @@ impl Clinet {
 
         let n = reader.read(&mut buffer).await?; // read auth resp
         if n == 0 {
-            error!("Failed to read auth resp");
+            error!("Failed to read auth resp: {:?}", buffer.to_vec());
             return Err(anyhow::anyhow!("Failed to read auth resp"));
         }
         info!("Auth resp: {:?}", str::from_utf8(&buffer[16..n])?);
