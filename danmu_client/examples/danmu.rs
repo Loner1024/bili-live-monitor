@@ -1,8 +1,8 @@
 use chrono::{DateTime, Local};
 use danmu_client::danmu::Clinet;
+use dotenv::dotenv;
 use owo_colors::OwoColorize;
 use parse::Message;
-use dotenv::dotenv;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

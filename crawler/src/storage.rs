@@ -4,7 +4,22 @@ use duckdb::{params, Appender, Connection};
 use log::{debug, info};
 use parse::{DanmuMessage, SuperChatMessage};
 use std::env;
+use std::fmt::{Display, Formatter};
 use std::sync::atomic;
+
+pub enum MessageType {
+    Danmu,
+    SuperChat,
+}
+
+impl Display for MessageType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            MessageType::Danmu => "danmu",
+            MessageType::SuperChat => "super_chat",
+        })
+    }
+}
 
 pub struct Storage<'a> {
     conn: &'a Connection,
