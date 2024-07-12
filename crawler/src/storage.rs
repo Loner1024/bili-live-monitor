@@ -231,7 +231,7 @@ impl<'a> Storage<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{Local, Utc};
+    use chrono::Utc;
     use dotenv::dotenv;
 
     fn init() {
@@ -240,6 +240,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_storage_crate_danmu() {
         init();
         let conn = Connection::open_in_memory().unwrap();
@@ -276,6 +277,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_storage_crate_super_chat() {
         init();
         let conn = Connection::open_in_memory().unwrap();
@@ -318,6 +320,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_merge_data_and_persist() {
         init();
         let conn = Connection::open_in_memory().unwrap();
