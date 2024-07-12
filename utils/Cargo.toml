@@ -6,4 +6,3 @@ edition = "2021"
 [dependencies]
 anyhow = { version = "1.0.86", features = ["backtrace"] }
 chrono = "0.4.38"
-crawler = {path = "../crawler"}
