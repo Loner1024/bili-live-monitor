@@ -20,13 +20,16 @@ jobs:
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
+      - name: Set timezone
+        uses: szenius/set-timezone@v2.0
+        with:
+          timezoneLinux: "Asia/Shanghai"
+          timezoneMacos: "Asia/Shanghai"
+          timezoneWindows: "Asia/Shanghai"
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
-      - uses: szenius/set-timezone@v2.0
-        with:
-          timezoneLinux: "Asia/Beijing"
       - name: Install Rust
         run: rustup toolchain install stable --component llvm-tools-preview
       - name: Install cargo-llvm-cov
