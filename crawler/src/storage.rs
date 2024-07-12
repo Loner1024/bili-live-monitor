@@ -209,8 +209,18 @@ impl<'a> Storage<'a> {
         self.danmu_message_buffer_size
             .store(0, atomic::Ordering::SeqCst);
 
-        let super_chat_target = get_table_name(&self.bucket, MessageType::SuperChat, self.room_id, self.timestamp)?;
-        let danmu_target = get_table_name(&self.bucket, MessageType::Danmu, self.room_id, self.timestamp)?;
+        let super_chat_target = get_table_name(
+            &self.bucket,
+            MessageType::SuperChat,
+            self.room_id,
+            self.timestamp,
+        )?;
+        let danmu_target = get_table_name(
+            &self.bucket,
+            MessageType::Danmu,
+            self.room_id,
+            self.timestamp,
+        )?;
 
         self.merge_data_and_persist(&super_chat_target, MessageType::SuperChat)?;
         self.merge_data_and_persist(&danmu_target, MessageType::Danmu)?;
@@ -337,7 +347,15 @@ mod tests {
             storage.create_danmu_message(danmu.clone()).unwrap();
         }
         let oss_config = OssConfig::new().unwrap();
-        let danmu_target = get_table_name(&oss_config.bucket, MessageType::Danmu, room_id, now.timestamp()).unwrap();
-        storage.merge_data_and_persist(&danmu_target, MessageType::Danmu).unwrap();
+        let danmu_target = get_table_name(
+            &oss_config.bucket,
+            MessageType::Danmu,
+            room_id,
+            now.timestamp(),
+        )
+        .unwrap();
+        storage
+            .merge_data_and_persist(&danmu_target, MessageType::Danmu)
+            .unwrap();
     }
 }

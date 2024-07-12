@@ -22,7 +22,6 @@ async fn main() -> Result<()> {
 
     let cookies = std::env::var("BILI_COOKIE")?;
 
-
     let client = Clinet::new(room_id as u64, &cookies)?;
     let mut rx = client.listen().await?;
 
