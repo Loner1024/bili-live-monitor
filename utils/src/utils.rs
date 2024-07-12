@@ -1,9 +1,9 @@
-use crate::storage::MessageType;
+use crawler::storage::MessageType;
 use anyhow::{anyhow, Result};
 use chrono::{Local, TimeZone, Utc};
 
 // 获取表名
-fn get_table_name(message_type: MessageType, room_id: i64, timestamp: i64) -> Result<String> {
+pub fn get_table_name(message_type: MessageType, room_id: i64, timestamp: i64) -> Result<String> {
     // 将 Unix 时间戳转换为 UTC 时间
     // 将 UTC 时间转换为本地时间
     let datetime = Utc

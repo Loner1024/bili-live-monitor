@@ -2381,6 +2381,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "utils"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "crawler",
+]
+
+[[package]]
 name = "uuid"
 version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
