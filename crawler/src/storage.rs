@@ -1,25 +1,10 @@
 use anyhow::Result;
-use chrono::NaiveDate;
 use duckdb::{params, Appender, Connection};
 use log::{debug, info};
 use parse::{DanmuMessage, SuperChatMessage};
 use std::env;
-use std::fmt::{Display, Formatter};
 use std::sync::atomic;
-
-pub enum MessageType {
-    Danmu,
-    SuperChat,
-}
-
-impl Display for MessageType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            MessageType::Danmu => "danmu",
-            MessageType::SuperChat => "super_chat",
-        })
-    }
-}
+use utils::utils::{get_table_name, MessageType};
 
 pub struct Storage<'a> {
     conn: &'a Connection,
@@ -28,7 +13,8 @@ pub struct Storage<'a> {
     super_chat_message_buffer: Appender<'a>,
     super_chat_message_buffer_size: atomic::AtomicI32,
     bucket: String,
-    date: String,
+    timestamp: i64,
+    room_id: i64,
 }
 
 pub struct OssConfig {
@@ -57,7 +43,7 @@ impl OssConfig {
 }
 
 impl<'a> Storage<'a> {
-    pub fn new(conn: &'a Connection, date: NaiveDate) -> Result<Self> {
+    pub fn new(conn: &'a Connection, room_id: i64, timestamp: i64) -> Result<Self> {
         let oss_config = OssConfig::new()?;
         Self::init_oss(
             conn,
@@ -66,8 +52,7 @@ impl<'a> Storage<'a> {
             oss_config.key.as_str(),
             oss_config.secret.as_str(),
         )?;
-        let date = date.format("%Y-%m-%d").to_string();
-        Self::init_table(conn, &oss_config.bucket, &date)?;
+        Self::init_table(conn, &oss_config.bucket, room_id, timestamp)?;
         Ok(Self {
             conn,
             danmu_message_buffer: conn.appender("danmu")?,
@@ -75,11 +60,12 @@ impl<'a> Storage<'a> {
             super_chat_message_buffer: conn.appender("super_chat")?,
             super_chat_message_buffer_size: atomic::AtomicI32::new(0),
             bucket: oss_config.bucket,
-            date,
+            room_id,
+            timestamp,
         })
     }
 
-    fn init_table(conn: &Connection, bucket: &str, date: &str) -> Result<()> {
+    fn init_table(conn: &Connection, bucket: &str, room_id: i64, timestamp: i64) -> Result<()> {
         conn.execute(
             "CREATE TABLE super_chat (
                 uid BIGINT,
@@ -100,8 +86,8 @@ impl<'a> Storage<'a> {
             [],
         )?;
 
-        let super_chat_target = format!("s3://{}/{}/super_chat.parquet", bucket, date);
-        let danmu_target = format!("s3://{}/{}/danmu.parquet", bucket, date);
+        let super_chat_target = get_table_name(bucket, MessageType::SuperChat, room_id, timestamp)?;
+        let danmu_target = get_table_name(bucket, MessageType::Danmu, room_id, timestamp)?;
         // check file exists
         if conn
             .execute(
@@ -188,8 +174,7 @@ impl<'a> Storage<'a> {
         Ok(())
     }
 
-    fn merge_data_and_persist(&self, table_name: &str) -> Result<()> {
-        let persist_target = format!("s3://{}/{}/{}.parquet", self.bucket, self.date, table_name);
+    fn merge_data_and_persist(&self, persist_target: &str, local_table: MessageType) -> Result<()> {
         // check persist target exists
         if let Err(e) = self.conn.execute(
             &format!("SELECT COUNT(*) as count FROM '{persist_target}'"),
@@ -204,7 +189,7 @@ impl<'a> Storage<'a> {
         )?;
         // merge data
         self.conn.execute(
-            &format!("CREATE TABLE merged_data AS SELECT * FROM existing_data UNION ALL SELECT * FROM {table_name}"), [],
+            &format!("CREATE TABLE merged_data AS SELECT * FROM existing_data UNION ALL SELECT * FROM {local_table}"), [],
         )?;
         self.conn
             .execute(&format!("COPY merged_data TO '{persist_target}'"), [])?;
@@ -212,7 +197,7 @@ impl<'a> Storage<'a> {
         self.conn.execute("DROP TABLE existing_data", [])?;
         self.conn.execute("DROP TABLE merged_data", [])?;
         self.conn
-            .execute(&format!("DELETE FROM {table_name}"), [])?;
+            .execute(&format!("DELETE FROM {local_table}"), [])?;
         Ok(())
     }
 
@@ -223,10 +208,22 @@ impl<'a> Storage<'a> {
             .store(0, atomic::Ordering::SeqCst);
         self.danmu_message_buffer_size
             .store(0, atomic::Ordering::SeqCst);
-        self.merge_data_and_persist("super_chat")?;
-        self.merge_data_and_persist("danmu")?;
+
+        let super_chat_target = get_table_name(&self.bucket, MessageType::SuperChat, self.room_id, self.timestamp)?;
+        let danmu_target = get_table_name(&self.bucket, MessageType::Danmu, self.room_id, self.timestamp)?;
+
+        self.merge_data_and_persist(&super_chat_target, MessageType::SuperChat)?;
+        self.merge_data_and_persist(&danmu_target, MessageType::Danmu)?;
         info!("flush success");
 
+        Ok(())
+    }
+
+    pub fn switch_new_date(&mut self, timestamp: i64) -> Result<()> {
+        // flush exist data
+        self.flush()?;
+        // change timestamp
+        self.timestamp = timestamp;
         Ok(())
     }
 }
@@ -251,9 +248,10 @@ mod tests {
             uid: 10000,
             username: "Alice".to_string(),
             msg: "Hello, Bilibili".to_string(),
-            timestamp: now.timestamp_millis() as u64,
+            timestamp: now.timestamp() as u64,
         };
-        let mut storage = Storage::new(&conn, Local::now().date_naive()).unwrap();
+        let room_id = 22747736;
+        let mut storage = Storage::new(&conn, room_id, now.timestamp()).unwrap();
         for _ in 0..1000 {
             storage.create_danmu_message(danmu.clone()).unwrap();
         }
@@ -271,7 +269,7 @@ mod tests {
             assert_eq!(uid, 10000);
             assert_eq!(username, "Alice");
             assert_eq!(msg, "Hello, Bilibili");
-            assert_eq!(timestamp, now.timestamp_millis());
+            assert_eq!(timestamp, now.timestamp());
             Ok(())
         })
         .unwrap();
@@ -286,10 +284,12 @@ mod tests {
             uid: 10000,
             username: "Alice".to_string(),
             msg: "Hello, Bilibili".to_string(),
-            timestamp: now.timestamp_millis() as u64,
+            timestamp: now.timestamp() as u64,
             worth: 100.0,
         };
-        let mut storage = Storage::new(&conn, Local::now().date_naive()).unwrap();
+
+        let room_id = 22747736;
+        let mut storage = Storage::new(&conn, room_id, now.timestamp()).unwrap();
         for _ in 0..1000 {
             storage
                 .crate_super_chat_message(super_chat.clone())
@@ -310,7 +310,7 @@ mod tests {
             assert_eq!(uid, 10000);
             assert_eq!(username, "Alice");
             assert_eq!(msg, "Hello, Bilibili");
-            assert_eq!(timestamp, now.timestamp_millis());
+            assert_eq!(timestamp, now.timestamp());
             assert_eq!(worth, 100.0);
             Ok(())
         })
@@ -328,10 +328,13 @@ mod tests {
             msg: "Hello, Bilibili".to_string(),
             timestamp: now.timestamp_millis() as u64,
         };
-        let mut storage = Storage::new(&conn, Local::now().date_naive()).unwrap();
+        let room_id = 22747736;
+        let mut storage = Storage::new(&conn, room_id, now.timestamp()).unwrap();
         for _ in 0..1000 {
             storage.create_danmu_message(danmu.clone()).unwrap();
         }
-        storage.merge_data_and_persist("danmu").unwrap();
+        let oss_config = OssConfig::new().unwrap();
+        let danmu_target = get_table_name(&oss_config.bucket, MessageType::Danmu, room_id, now.timestamp()).unwrap();
+        storage.merge_data_and_persist(&danmu_target, MessageType::Danmu).unwrap();
     }
 }

@@ -13,6 +13,7 @@ dotenv = "0.15.0"
 tokio = { version = "1.38.0", features = ["full"] }
 danmu_client = {path = "../danmu_client"}
 chrono = "0.4.38"
+utils = {path = "../utils"}
 
 [dev-dependencies]
 chrono = "0.4.38"

@@ -541,6 +541,7 @@ dependencies = [
  "parse",
  "pretty_env_logger",
  "tokio",
+ "utils",
 ]
 
 [[package]]
@@ -2386,7 +2387,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
- "crawler",
 ]
 
 [[package]]
