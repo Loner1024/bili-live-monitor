@@ -50,7 +50,7 @@ impl TryFrom<&[u8]> for Message {
 
     fn try_from(data: &[u8]) -> std::result::Result<Self, Self::Error> {
         let s = str::from_utf8(data).map_err(|e| anyhow!("utf8 error: {}", e))?;
-        let bili_message = serde_json::from_str::<BiliMessage>(&s)?;
+        let bili_message = serde_json::from_str::<BiliMessage>(s)?;
         match bili_message.cmd.as_ref().unwrap().as_str() {
             "DANMU_MSG" => bili_message.get_danmu_mesage(),
             "INTERACT_WORD" => bili_message.get_enter_room(),
@@ -129,11 +129,11 @@ pub fn parse_message(header: Header, origin_data: &[u8]) -> Result<Vec<Message>>
     if header.msg_type == 3 {
         return Ok(vec![]);
     }
-    return match header.protocol {
+    match header.protocol {
         1 | 0 => Ok(vec![parse_command_packet(origin_data)?]),
         3 => parse_brotli_packet(header, origin_data),
         _ => Err(anyhow!("Unsupported protocol")),
-    };
+    }
 }
 
 fn brotli_decode(data: &[u8]) -> Result<Vec<u8>> {
@@ -194,10 +194,10 @@ pub fn build_packet(protocol: u16, msg_type: u32, body: &[u8]) -> Vec<u8> {
     let total_size = body.len() as u32 + 16;
     let mut packet = Vec::with_capacity(total_size as usize);
     packet.extend_from_slice(&total_size.to_be_bytes()); // total size
-    packet.extend_from_slice(&(16 as u16).to_be_bytes()); // head size
+    packet.extend_from_slice(&16_u16.to_be_bytes()); // head size
     packet.extend_from_slice(&protocol.to_be_bytes()); // protocol
     packet.extend_from_slice(&msg_type.to_be_bytes()); // msg type
-    packet.extend_from_slice(&(1 as u32).to_be_bytes()); // seq id
+    packet.extend_from_slice(&1_u32.to_be_bytes()); // seq id
     packet.extend_from_slice(body); // body
     packet
 }
