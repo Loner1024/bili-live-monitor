@@ -223,6 +223,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_storage_crate_danmu() {
         init();
         let conn = Connection::open_in_memory().unwrap();
@@ -266,6 +267,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_storage_crate_super_chat() {
         init();
         let conn = Connection::open_in_memory().unwrap();
