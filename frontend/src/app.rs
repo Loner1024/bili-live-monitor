@@ -44,7 +44,16 @@ fn HomePage() -> impl IntoView {
     let on_click = move |_| set_count.update(|count| *count += 1);
 
     view! {
-        <h1>"Welcome to Leptos!"</h1>
-        <button on:click=on_click>"Click Me: " {count}</button>
+        <Title text="Leptos + Tailwindcss"/>
+        <main>
+            <div class="bg-gradient-to-tl from-blue-800 to-blue-500 text-white font-mono flex flex-col min-h-screen">
+                <div class="flex flex-row-reverse flex-wrap m-auto">
+                    <button on:click=on_click class="rounded px-3 py-2 m-1 border-b-4 border-l-2 shadow-lg bg-blue-700 border-blue-800 text-white">
+                        "Click number " {count}
+                    </button>
+                    <p class="text-lg">Hello</p>
+                </div>
+            </div>
+        </main>
     }
 }
