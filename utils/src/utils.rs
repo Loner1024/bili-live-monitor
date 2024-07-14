@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
+use std::env;
 use std::fmt::{Display, Formatter};
 
 pub enum MessageType {
@@ -66,6 +67,31 @@ fn get_local_midnight(timestamp: i64) -> Result<i64> {
         .ok_or(anyhow!("Invalid timestamp"))?;
 
     Ok(utc.timestamp())
+}
+
+pub struct OssConfig {
+    pub endpoint: String,
+    pub region: String,
+    pub key: String,
+    pub secret: String,
+    pub bucket: String,
+}
+
+impl OssConfig {
+    pub fn new() -> Result<Self> {
+        let endpoint = env::var("OSS_ENDPOINT")?;
+        let region = env::var("OSS_REGION")?;
+        let key = env::var("OSS_KEY")?;
+        let secret = env::var("OSS_SECRET")?;
+        let bucket = env::var("OSS_BUCKET")?;
+        Ok(Self {
+            endpoint,
+            region,
+            key,
+            secret,
+            bucket,
+        })
+    }
 }
 
 #[cfg(test)]

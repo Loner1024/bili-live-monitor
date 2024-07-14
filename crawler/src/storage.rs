@@ -4,7 +4,7 @@ use log::{debug, info};
 use parse::{DanmuMessage, SuperChatMessage};
 use std::env;
 use std::sync::atomic;
-use utils::utils::{get_table_name, MessageType};
+use utils::utils::{get_table_name, MessageType, OssConfig};
 
 pub struct Storage<'a> {
     conn: &'a Connection,
@@ -15,33 +15,8 @@ pub struct Storage<'a> {
     room_id: i64,
 }
 
-pub struct OssConfig {
-    endpoint: String,
-    region: String,
-    key: String,
-    secret: String,
-    bucket: String,
-}
-
 const COMMON_DANMU_TYPE: i8 = 1;
 const SUPER_CHAT_TYPE: i8 = 2;
-
-impl OssConfig {
-    pub fn new() -> Result<Self> {
-        let endpoint = env::var("OSS_ENDPOINT")?;
-        let region = env::var("OSS_REGION")?;
-        let key = env::var("OSS_KEY")?;
-        let secret = env::var("OSS_SECRET")?;
-        let bucket = env::var("OSS_BUCKET")?;
-        Ok(Self {
-            endpoint,
-            region,
-            key,
-            secret,
-            bucket,
-        })
-    }
-}
 
 impl<'a> Storage<'a> {
     pub fn new(conn: &'a Connection, room_id: i64, timestamp: i64) -> Result<Self> {
