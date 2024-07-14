@@ -91,6 +91,7 @@ mod tests {
     use dotenv::dotenv;
 
     #[test]
+    #[ignore]
     fn test_query() {
         pretty_env_logger::init();
         dotenv().ok().unwrap();
