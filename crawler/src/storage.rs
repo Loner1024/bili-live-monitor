@@ -265,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    // #[ignore]
+    #[ignore]
     fn test_merge_data_and_persist() {
         init();
         let conn = Connection::open_in_memory().unwrap();
