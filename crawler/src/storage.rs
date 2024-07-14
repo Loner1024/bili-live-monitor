@@ -2,7 +2,6 @@ use anyhow::Result;
 use duckdb::{params, Appender, Connection};
 use log::{debug, info};
 use parse::{DanmuMessage, SuperChatMessage};
-use std::env;
 use std::sync::atomic;
 use utils::utils::{get_table_name, MessageType, OssConfig};
 
@@ -84,7 +83,7 @@ impl<'a> Storage<'a> {
     }
     pub fn crate_super_chat_message(&mut self, message: SuperChatMessage) -> Result<()> {
         self.danmu_message_buffer.append_row(params![
-            MessageType::SuperChat.into(),
+            i8::from(MessageType::SuperChat),
             message.uid,
             message.username,
             message.msg,
@@ -110,7 +109,7 @@ impl<'a> Storage<'a> {
                 .load(atomic::Ordering::SeqCst)
         );
         self.danmu_message_buffer.append_row(params![
-            MessageType::Danmu.into(),
+            i8::from(MessageType::Danmu),
             message.uid,
             message.username,
             message.msg,
