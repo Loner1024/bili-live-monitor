@@ -160,11 +160,7 @@ impl<'a> Storage<'a> {
         self.danmu_message_buffer_size
             .store(0, atomic::Ordering::SeqCst);
 
-        let danmu_target = get_table_name(
-            &self.bucket,
-            self.room_id,
-            self.timestamp,
-        )?;
+        let danmu_target = get_table_name(&self.bucket, self.room_id, self.timestamp)?;
 
         self.merge_data_and_persist(&danmu_target, &MessageType::Danmu.to_string())?;
         info!("flush success");
@@ -305,12 +301,7 @@ mod tests {
             storage.create_danmu_message(danmu.clone()).unwrap();
         }
         let oss_config = OssConfig::new().unwrap();
-        let danmu_target = get_table_name(
-            &oss_config.bucket,
-            room_id,
-            now.timestamp(),
-        )
-        .unwrap();
+        let danmu_target = get_table_name(&oss_config.bucket, room_id, now.timestamp()).unwrap();
         storage
             .merge_data_and_persist(&danmu_target, &MessageType::Danmu.to_string())
             .unwrap();

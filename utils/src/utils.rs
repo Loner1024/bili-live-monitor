@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
+use duckdb::types::{FromSql, FromSqlResult, ValueRef};
 use std::env;
 use std::fmt::{Display, Formatter};
 
@@ -8,6 +9,16 @@ impl From<MessageType> for i8 {
         match message_type {
             MessageType::Danmu => 1,
             MessageType::SuperChat => 2,
+        }
+    }
+}
+
+impl FromSql for MessageType {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        match value.get_i8() {
+            Some(1) => Ok(MessageType::Danmu),
+            Some(2) => Ok(MessageType::SuperChat),
+            _ => Err("Invalid message type".into()),
         }
     }
 }
@@ -31,11 +42,7 @@ impl Display for MessageType {
 }
 
 // 获取表名
-pub fn get_table_name(
-    bucket: &str,
-    room_id: i64,
-    timestamp: i64,
-) -> Result<String> {
+pub fn get_table_name(bucket: &str, room_id: i64, timestamp: i64) -> Result<String> {
     // 将 Unix 时间戳转换为 UTC 时间
     // 将 UTC 时间转换为本地时间
     let datetime = Utc
