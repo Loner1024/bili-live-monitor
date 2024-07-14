@@ -3,6 +3,15 @@ use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
 use std::env;
 use std::fmt::{Display, Formatter};
 
+impl From<MessageType> for i8 {
+    fn from(message_type: MessageType) -> Self {
+        match message_type {
+            MessageType::Danmu => 1,
+            MessageType::SuperChat => 2,
+        }
+    }
+}
+
 pub enum MessageType {
     Danmu,
     SuperChat,
@@ -24,7 +33,6 @@ impl Display for MessageType {
 // 获取表名
 pub fn get_table_name(
     bucket: &str,
-    message_type: MessageType,
     room_id: i64,
     timestamp: i64,
 ) -> Result<String> {
@@ -38,8 +46,8 @@ pub fn get_table_name(
         .format("%Y-%m-%d");
 
     Ok(format!(
-        "s3://{}/{}/{}/{}.parquet",
-        bucket, datetime, room_id, message_type
+        "s3://{}/{}/{}/danmu.parquet",
+        bucket, datetime, room_id
     ))
 }
 
@@ -132,11 +140,10 @@ mod test {
     #[test]
     fn test_get_table_name() {
         let bucket_name = "bilibili";
-        let message_type = MessageType::Danmu;
         let room_id = 123456789;
         let timestamp = 1720526217; // 2023-05-10 12:00:00 UTC
 
-        let table_name = get_table_name(bucket_name, message_type, room_id, timestamp).unwrap();
+        let table_name = get_table_name(bucket_name, room_id, timestamp).unwrap();
         assert_eq!(
             table_name,
             "s3://bilibili/2024-07-09/123456789/danmu.parquet"

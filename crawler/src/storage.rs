@@ -15,9 +15,6 @@ pub struct Storage<'a> {
     room_id: i64,
 }
 
-const COMMON_DANMU_TYPE: i8 = 1;
-const SUPER_CHAT_TYPE: i8 = 2;
-
 impl<'a> Storage<'a> {
     pub fn new(conn: &'a Connection, room_id: i64, timestamp: i64) -> Result<Self> {
         let oss_config = OssConfig::new()?;
@@ -51,7 +48,7 @@ impl<'a> Storage<'a> {
             )",
             [],
         )?;
-        let danmu_target = get_table_name(bucket, MessageType::Danmu, room_id, timestamp)?;
+        let danmu_target = get_table_name(bucket, room_id, timestamp)?;
         // check file exists
         if conn
             .execute(
@@ -87,7 +84,7 @@ impl<'a> Storage<'a> {
     }
     pub fn crate_super_chat_message(&mut self, message: SuperChatMessage) -> Result<()> {
         self.danmu_message_buffer.append_row(params![
-            SUPER_CHAT_TYPE,
+            MessageType::SuperChat.into(),
             message.uid,
             message.username,
             message.msg,
@@ -113,7 +110,7 @@ impl<'a> Storage<'a> {
                 .load(atomic::Ordering::SeqCst)
         );
         self.danmu_message_buffer.append_row(params![
-            COMMON_DANMU_TYPE,
+            MessageType::Danmu.into(),
             message.uid,
             message.username,
             message.msg,
@@ -166,7 +163,6 @@ impl<'a> Storage<'a> {
 
         let danmu_target = get_table_name(
             &self.bucket,
-            MessageType::Danmu,
             self.room_id,
             self.timestamp,
         )?;
@@ -312,7 +308,6 @@ mod tests {
         let oss_config = OssConfig::new().unwrap();
         let danmu_target = get_table_name(
             &oss_config.bucket,
-            MessageType::Danmu,
             room_id,
             now.timestamp(),
         )
