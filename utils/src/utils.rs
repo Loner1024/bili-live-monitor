@@ -171,7 +171,7 @@ mod test {
         let table_name = get_table_name(bucket_name, room_id, timestamp).unwrap();
         assert_eq!(
             table_name,
-            "s3://bilibili/2024-07-09/123456789/danmu.parquet"
+            "s3://bilibili/2024-07-15/123456789/danmu.parquet"
         );
     }
 }
