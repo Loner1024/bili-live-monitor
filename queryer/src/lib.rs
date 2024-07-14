@@ -98,7 +98,9 @@ mod tests {
         let query = Query::new(&conn).unwrap();
         let room_id = 22747736;
         let timestamp = 1720973747;
-        let result = query.query(room_id, timestamp, Some(MessageType::SuperChat), None, None).unwrap();
+        let result = query
+            .query(room_id, timestamp, Some(MessageType::SuperChat), None, None)
+            .unwrap();
         for message in result {
             println!("{:?}", message);
         }
