@@ -3,7 +3,7 @@ use duckdb::{params, Appender, Connection};
 use log::{debug, info};
 use parse::{DanmuMessage, SuperChatMessage};
 use std::sync::atomic;
-use utils::utils::{get_table_name, MessageType, OssConfig};
+use utils::utils::{get_table_name, init_oss, MessageType, OssConfig};
 
 pub struct Storage<'a> {
     conn: &'a Connection,
@@ -17,7 +17,7 @@ pub struct Storage<'a> {
 impl<'a> Storage<'a> {
     pub fn new(conn: &'a Connection, room_id: i64, timestamp: i64) -> Result<Self> {
         let oss_config = OssConfig::new()?;
-        Self::init_oss(
+        init_oss(
             conn,
             oss_config.endpoint.as_str(),
             oss_config.region.as_str(),
@@ -62,25 +62,6 @@ impl<'a> Storage<'a> {
         Ok(())
     }
 
-    fn init_oss(
-        conn: &Connection,
-        endpoint: &str,
-        region: &str,
-        key: &str,
-        secret: &str,
-    ) -> Result<()> {
-        let stmt = format!(
-            "CREATE SECRET (
-                TYPE S3,
-                Endpoint '{endpoint}',
-                KEY_ID '{key}',
-                SECRET '{secret}',
-                REGION '{region}'
-            );",
-        );
-        conn.execute(&stmt, [])?;
-        Ok(())
-    }
     pub fn crate_super_chat_message(&mut self, message: SuperChatMessage) -> Result<()> {
         self.danmu_message_buffer.append_row(params![
             i8::from(MessageType::SuperChat),
@@ -284,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    // #[ignore]
     fn test_merge_data_and_persist() {
         init();
         let conn = Connection::open_in_memory().unwrap();
@@ -293,7 +274,7 @@ mod tests {
             uid: 10000,
             username: "Alice".to_string(),
             msg: "Hello, Bilibili".to_string(),
-            timestamp: now.timestamp_millis() as u64,
+            timestamp: now.timestamp() as u64,
         };
         let room_id = 22747736;
         let mut storage = Storage::new(&conn, room_id, now.timestamp()).unwrap();
@@ -302,6 +283,7 @@ mod tests {
         }
         let oss_config = OssConfig::new().unwrap();
         let danmu_target = get_table_name(&oss_config.bucket, room_id, now.timestamp()).unwrap();
+        println!("danmu_target: {}", danmu_target);
         storage
             .merge_data_and_persist(&danmu_target, &MessageType::Danmu.to_string())
             .unwrap();

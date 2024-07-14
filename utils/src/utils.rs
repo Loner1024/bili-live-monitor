@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
-use duckdb::types::{FromSql, FromSqlResult, ValueRef};
+use duckdb::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
+use duckdb::Connection;
 use std::env;
 use std::fmt::{Display, Formatter};
 
@@ -15,10 +16,10 @@ impl From<MessageType> for i8 {
 
 impl FromSql for MessageType {
     fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
-        match value.get_i8() {
-            Some(1) => Ok(MessageType::Danmu),
-            Some(2) => Ok(MessageType::SuperChat),
-            _ => Err("Invalid message type".into()),
+        match i8::column_result(value)? {
+            1 => Ok(MessageType::Danmu),
+            2 => Ok(MessageType::SuperChat),
+            _ => Err(FromSqlError::InvalidType),
         }
     }
 }
@@ -43,15 +44,12 @@ impl Display for MessageType {
 
 // 获取表名
 pub fn get_table_name(bucket: &str, room_id: i64, timestamp: i64) -> Result<String> {
-    // 将 Unix 时间戳转换为 UTC 时间
-    // 将 UTC 时间转换为本地时间
     let datetime = Utc
         .timestamp_opt(timestamp, 0)
         .single()
         .ok_or(anyhow!("Invalid timestamp"))?
         .with_timezone(&Local)
         .format("%Y-%m-%d");
-
     Ok(format!(
         "s3://{}/{}/{}/danmu.parquet",
         bucket, datetime, room_id
@@ -90,6 +88,26 @@ pub struct OssConfig {
     pub key: String,
     pub secret: String,
     pub bucket: String,
+}
+
+pub fn init_oss(
+    conn: &Connection,
+    endpoint: &str,
+    region: &str,
+    key: &str,
+    secret: &str,
+) -> Result<()> {
+    let stmt = format!(
+        "CREATE SECRET (
+                TYPE S3,
+                Endpoint '{endpoint}',
+                KEY_ID '{key}',
+                SECRET '{secret}',
+                REGION '{region}'
+            );",
+    );
+    conn.execute(&stmt, [])?;
+    Ok(())
 }
 
 impl OssConfig {
@@ -148,7 +166,7 @@ mod test {
     fn test_get_table_name() {
         let bucket_name = "bilibili";
         let room_id = 123456789;
-        let timestamp = 1720526217; // 2023-05-10 12:00:00 UTC
+        let timestamp = 1720973747;
 
         let table_name = get_table_name(bucket_name, room_id, timestamp).unwrap();
         assert_eq!(
