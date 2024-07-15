@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-duckdb = { version = "1.0.0", features = ["bundled"]}
+duckdb = { version = "1.0.0", features = ["bundled", "r2d2"]}
 anyhow = { version = "1.0.86", features = ["backtrace"] }
 parse = { path = "../parse" }
 utils = { path = "../utils" }
 log = "0.4.21"
+r2d2 = "0.8.10"
+tokio = "1.38.0"
 
 [dev-dependencies]
 dotenv = "0.15.0"

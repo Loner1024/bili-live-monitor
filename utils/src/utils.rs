@@ -1,7 +1,8 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
 use duckdb::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
-use duckdb::Connection;
+use duckdb::{Connection, DuckdbConnectionManager};
+use r2d2::PooledConnection;
 use std::env;
 use std::fmt::{Display, Formatter};
 
@@ -24,9 +25,25 @@ impl FromSql for MessageType {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub enum MessageType {
     Danmu,
     SuperChat,
+}
+
+impl Into<MessageType> for Option<String> {
+    fn into(self) -> MessageType {
+        match self {
+            None => MessageType::Danmu,
+            Some(s) => {
+                if s == "super_chat" {
+                    MessageType::SuperChat
+                } else {
+                    MessageType::Danmu
+                }
+            }
+        }
+    }
 }
 
 impl Display for MessageType {
@@ -90,7 +107,27 @@ pub struct OssConfig {
     pub bucket: String,
 }
 
-pub fn init_oss(
+pub fn init_oss_with_pool(
+    conn: &PooledConnection<DuckdbConnectionManager>,
+    endpoint: &str,
+    region: &str,
+    key: &str,
+    secret: &str,
+) -> Result<()> {
+    let stmt = format!(
+        "CREATE SECRET (
+                TYPE S3,
+                Endpoint '{endpoint}',
+                KEY_ID '{key}',
+                SECRET '{secret}',
+                REGION '{region}'
+            );",
+    );
+    conn.execute(&stmt, [])?;
+    Ok(())
+}
+
+pub fn init_oss_with_conn(
     conn: &Connection,
     endpoint: &str,
     region: &str,

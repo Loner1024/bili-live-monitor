@@ -1,5 +1,5 @@
 [workspace]
-members = [ "crawler", "danmu_client","parse", "utils", "queryer"]
+members = [ "crawler", "danmu_client","parse", "utils", "queryer", "service"]
 
 resolver = "2"
 

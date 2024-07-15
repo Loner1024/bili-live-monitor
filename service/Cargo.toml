@@ -1,0 +1,23 @@
+[package]
+name = "service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.7.5", features = ["http2"] }
+tokio = { version = "1.38.0", features = ["macros", "rt-multi-thread"] }
+queryer = { path = "../queryer" }
+anyhow = "1.0.86"
+duckdb = { version = "1.0.0", features = ["r2d2"] }
+thiserror = "1.0.62"
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.120"
+utils = { path = "../utils" }
+r2d2 = "0.8.10"
+dotenv = "0.15.0"
+pretty_env_logger = "0.5.0"
+tracing = "0.1.40"
+tracing-subscriber = { version =  "0.3.18", features = ["env-filter"] }
+tower = "0.4.13"
+tower-http = { version = "0.5.2", features = ["trace"] }
+parse = { path = "../parse" }

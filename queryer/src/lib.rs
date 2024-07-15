@@ -1,25 +1,28 @@
-use anyhow::Result;
-use duckdb::Connection;
+use anyhow::{Context, Result};
+use duckdb::DuckdbConnectionManager;
 use parse::{DanmuMessage, Message, SuperChatMessage};
-use utils::utils::{get_table_name, init_oss, MessageType, OssConfig};
+use r2d2::{Pool, PooledConnection};
+use tokio::task;
+use utils::utils::{get_table_name, init_oss_with_pool, MessageType, OssConfig};
 
-pub struct Query<'a> {
-    conn: &'a Connection,
+#[derive(Clone)]
+pub struct Query {
+    pool: Pool<DuckdbConnectionManager>,
     bucket: String,
 }
 
-impl<'a> Query<'a> {
-    pub fn new(conn: &'a Connection) -> Result<Self> {
+impl Query {
+    pub fn new(pool: Pool<DuckdbConnectionManager>) -> Result<Self> {
         let oss_config = OssConfig::new()?;
-        init_oss(
-            conn,
+        init_oss_with_pool(
+            &pool.get()?,
             oss_config.endpoint.as_str(),
             oss_config.region.as_str(),
             oss_config.key.as_str(),
             oss_config.secret.as_str(),
         )?;
         Ok(Self {
-            conn,
+            pool,
             bucket: oss_config.bucket,
         })
     }
@@ -32,6 +35,7 @@ impl<'a> Query<'a> {
         username: Option<String>,
         message: Option<String>,
     ) -> Result<Vec<Message>> {
+        let conn = self.pool.get()?;
         let mut result = Vec::new();
         let mut contidition = Vec::new();
         if let Some(username) = username {
@@ -50,9 +54,8 @@ impl<'a> Query<'a> {
         };
         let table = get_table_name(&self.bucket, room_id, timestamp)?;
 
-        let mut query_stmt = self
-            .conn
-            .prepare(&format!("SELECT * FROM '{}' {}", table, where_clause))?;
+        let mut query_stmt =
+            conn.prepare(&format!("SELECT * FROM '{}' {}", table, where_clause))?;
 
         let mut rows = query_stmt.query([])?;
 
@@ -83,6 +86,14 @@ impl<'a> Query<'a> {
 
         Ok(result)
     }
+
+    async fn get_conn(&self) -> Result<PooledConnection<DuckdbConnectionManager>> {
+        let pool = self.pool.clone();
+        task::spawn_blocking(move || pool.get())
+            .await
+            .context("Failed to spawn blocking task")?
+            .context("Failed to get connection from pool")
+    }
 }
 
 #[cfg(test)]
@@ -95,8 +106,9 @@ mod tests {
     fn test_query() {
         pretty_env_logger::init();
         dotenv().ok().unwrap();
-        let conn = Connection::open_in_memory().unwrap();
-        let query = Query::new(&conn).unwrap();
+        let manager = DuckdbConnectionManager::memory().unwrap();
+        let pool = Pool::new(manager)?;
+        let query = Query::new(pool).unwrap();
         let room_id = 22747736;
         let timestamp = 1720973747;
         let result = query

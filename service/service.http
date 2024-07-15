@@ -1,0 +1,4 @@
+### Query
+GET http://localhost:8080/api/{{room_id}}?timestamp={{timestamp}}
+
+###

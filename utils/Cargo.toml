@@ -7,3 +7,6 @@ edition = "2021"
 anyhow = { version = "1.0.86", features = ["backtrace"] }
 chrono = "0.4.38"
 duckdb = { version = "1.0.0" }
+r2d2 = "0.8.10"
+log = "0.4.22"
+serde = "1.0.204"
