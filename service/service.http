@@ -1,4 +1,4 @@
 ### Query
-GET http://localhost:8080/api/{{room_id}}?timestamp={{timestamp}}
+GET http://localhost:8080/api/{{room_id}}?timestamp={{timestamp}}&limit=10&offset=0
 
 ###

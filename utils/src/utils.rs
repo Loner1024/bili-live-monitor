@@ -25,7 +25,7 @@ impl FromSql for MessageType {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum MessageType {
     Danmu,
     SuperChat,

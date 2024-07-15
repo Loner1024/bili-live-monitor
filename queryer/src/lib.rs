@@ -1,8 +1,7 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use duckdb::DuckdbConnectionManager;
 use parse::{DanmuMessage, Message, SuperChatMessage};
-use r2d2::{Pool, PooledConnection};
-use tokio::task;
+use r2d2::Pool;
 use utils::utils::{get_table_name, init_oss_with_pool, MessageType, OssConfig};
 
 #[derive(Clone)]
@@ -34,30 +33,24 @@ impl Query {
         message_type: Option<MessageType>,
         username: Option<String>,
         message: Option<String>,
+        limit: Option<usize>,
+        offset: Option<usize>,
     ) -> Result<Vec<Message>> {
         let conn = self.pool.get()?;
-        let mut result = Vec::new();
-        let mut contidition = Vec::new();
-        if let Some(username) = username {
-            contidition.push(format!("username = '{}'", username));
-        }
-        if let Some(message) = message {
-            contidition.push(format!("message LIKE '%{}%'", message));
-        }
-        if let Some(message_type) = message_type {
-            contidition.push(format!("msg_type = '{}'", i8::from(message_type)));
-        }
-        let where_clause = if contidition.is_empty() {
-            String::from("")
-        } else {
-            format!("WHERE {}", contidition.join(" AND "))
-        };
-        let table = get_table_name(&self.bucket, room_id, timestamp)?;
-
-        let mut query_stmt =
-            conn.prepare(&format!("SELECT * FROM '{}' {}", table, where_clause))?;
+        let mut query_stmt = conn.prepare(&self.build_stmt(
+            "*",
+            room_id,
+            timestamp,
+            message_type,
+            username,
+            message,
+            limit,
+            offset,
+        )?)?;
 
         let mut rows = query_stmt.query([])?;
+
+        let mut result = Vec::new();
 
         while let Some(row) = rows.next()? {
             let message_type: MessageType = row.get("msg_type")?;
@@ -87,13 +80,88 @@ impl Query {
         Ok(result)
     }
 
-    async fn get_conn(&self) -> Result<PooledConnection<DuckdbConnectionManager>> {
-        let pool = self.pool.clone();
-        task::spawn_blocking(move || pool.get())
-            .await
-            .context("Failed to spawn blocking task")?
-            .context("Failed to get connection from pool")
+    pub fn query_count(
+        &self,
+        room_id: i64,
+        timestamp: i64,
+        message_type: Option<MessageType>,
+        username: Option<String>,
+        message: Option<String>,
+    ) -> Result<usize> {
+        let conn = self.pool.get()?;
+        let mut query_stmt = conn.prepare(&self.build_stmt(
+            "count(*)",
+            room_id,
+            timestamp,
+            message_type,
+            username,
+            message,
+            None,
+            None,
+        )?)?;
+
+        let mut rows = query_stmt.query([])?;
+        let count: usize = rows.next()?.unwrap().get(0)?;
+        Ok(count)
     }
+
+    fn build_stmt(
+        &self,
+        col: &str,
+        room_id: i64,
+        timestamp: i64,
+        message_type: Option<MessageType>,
+        username: Option<String>,
+        message: Option<String>,
+        limit: Option<usize>,
+        offset: Option<usize>,
+    ) -> Result<String> {
+        let mut contidition = Vec::new();
+        if let Some(username) = username {
+            contidition.push(format!("username = '{}'", username));
+        }
+        if let Some(message) = message {
+            contidition.push(format!("message LIKE '%{}%'", message));
+        }
+        if let Some(message_type) = message_type {
+            contidition.push(format!("msg_type = '{}'", i8::from(message_type)));
+        }
+        let where_clause = if contidition.is_empty() {
+            String::from("")
+        } else {
+            format!("WHERE {}", contidition.join(" AND "))
+        };
+        let table = get_table_name(&self.bucket, room_id, timestamp)?;
+
+        let limit_clause = match limit {
+            None => String::from(""),
+            Some(limit) => format!("LIMIT {}", limit),
+        };
+
+        let offset_clause = match offset {
+            None => String::from(""),
+            Some(offset) => {
+                if limit_clause.is_empty() {
+                    String::from("")
+                } else {
+                    format!("OFFSET {}", offset)
+                }
+            }
+        };
+
+        Ok(format!(
+            "SELECT {} FROM '{}' {} {} {}",
+            col, table, where_clause, limit_clause, offset_clause
+        ))
+    }
+
+    // async fn get_conn(&self) -> Result<PooledConnection<DuckdbConnectionManager>> {
+    //     let pool = self.pool.clone();
+    //     task::spawn_blocking(move || pool.get())
+    //         .await
+    //         .context("Failed to spawn blocking task")?
+    //         .context("Failed to get connection from pool")
+    // }
 }
 
 #[cfg(test)]
@@ -112,7 +180,15 @@ mod tests {
         let room_id = 22747736;
         let timestamp = 1720973747;
         let result = query
-            .query(room_id, timestamp, Some(MessageType::SuperChat), None, None)
+            .query(
+                room_id,
+                timestamp,
+                Some(MessageType::SuperChat),
+                None,
+                None,
+                Some(10),
+                Some(10),
+            )
             .unwrap();
         for message in result {
             println!("{:?}", message);
