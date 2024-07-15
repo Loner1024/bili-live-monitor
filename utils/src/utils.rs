@@ -31,17 +31,15 @@ pub enum MessageType {
     SuperChat,
 }
 
-impl Into<MessageType> for Option<String> {
-    fn into(self) -> MessageType {
-        match self {
+impl From<Option<String>> for MessageType {
+    fn from(value: Option<String>) -> Self {
+        match value {
+            Some(v) => match v.as_str() {
+                "danmu" => MessageType::Danmu,
+                "super_chat" => MessageType::SuperChat,
+                _ => MessageType::Danmu,
+            },
             None => MessageType::Danmu,
-            Some(s) => {
-                if s == "super_chat" {
-                    MessageType::SuperChat
-                } else {
-                    MessageType::Danmu
-                }
-            }
         }
     }
 }
