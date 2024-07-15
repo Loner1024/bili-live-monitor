@@ -6,6 +6,12 @@ use r2d2::PooledConnection;
 use std::env;
 use std::fmt::{Display, Formatter};
 
+#[derive(Default)]
+pub struct Pagination {
+    pub limit: usize,
+    pub offset: usize,
+}
+
 impl From<MessageType> for i8 {
     fn from(message_type: MessageType) -> Self {
         match message_type {

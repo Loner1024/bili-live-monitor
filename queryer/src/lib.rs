@@ -2,7 +2,7 @@ use anyhow::Result;
 use duckdb::DuckdbConnectionManager;
 use parse::{DanmuMessage, Message, SuperChatMessage};
 use r2d2::Pool;
-use utils::utils::{get_table_name, init_oss_with_pool, MessageType, OssConfig};
+use utils::utils::{get_table_name, init_oss_with_pool, MessageType, OssConfig, Pagination};
 
 #[derive(Clone)]
 pub struct Query {
@@ -33,8 +33,7 @@ impl Query {
         message_type: Option<MessageType>,
         username: Option<String>,
         message: Option<String>,
-        limit: Option<usize>,
-        offset: Option<usize>,
+        pagination: Option<Pagination>,
     ) -> Result<Vec<Message>> {
         let conn = self.pool.get()?;
         let mut query_stmt = conn.prepare(&self.build_stmt(
@@ -44,8 +43,7 @@ impl Query {
             message_type,
             username,
             message,
-            limit,
-            offset,
+            pagination,
         )?)?;
 
         let mut rows = query_stmt.query([])?;
@@ -97,7 +95,6 @@ impl Query {
             username,
             message,
             None,
-            None,
         )?)?;
 
         let mut rows = query_stmt.query([])?;
@@ -105,6 +102,7 @@ impl Query {
         Ok(count)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn build_stmt(
         &self,
         col: &str,
@@ -113,8 +111,7 @@ impl Query {
         message_type: Option<MessageType>,
         username: Option<String>,
         message: Option<String>,
-        limit: Option<usize>,
-        offset: Option<usize>,
+        pagination: Option<Pagination>,
     ) -> Result<String> {
         let mut contidition = Vec::new();
         if let Some(username) = username {
@@ -133,25 +130,16 @@ impl Query {
         };
         let table = get_table_name(&self.bucket, room_id, timestamp)?;
 
-        let limit_clause = match limit {
+        let pagination_clause = match pagination {
             None => String::from(""),
-            Some(limit) => format!("LIMIT {}", limit),
-        };
-
-        let offset_clause = match offset {
-            None => String::from(""),
-            Some(offset) => {
-                if limit_clause.is_empty() {
-                    String::from("")
-                } else {
-                    format!("OFFSET {}", offset)
-                }
+            Some(pagination) => {
+                format!("LIMIT {} OFFSET {}", pagination.limit, pagination.offset)
             }
         };
 
         Ok(format!(
-            "SELECT {} FROM '{}' {} {} {}",
-            col, table, where_clause, limit_clause, offset_clause
+            "SELECT {} FROM '{}' {} {}",
+            col, table, where_clause, pagination_clause
         ))
     }
 
@@ -175,7 +163,7 @@ mod tests {
         pretty_env_logger::init();
         dotenv().ok().unwrap();
         let manager = DuckdbConnectionManager::memory().unwrap();
-        let pool = Pool::new(manager)?;
+        let pool = Pool::new(manager).unwrap();
         let query = Query::new(pool).unwrap();
         let room_id = 22747736;
         let timestamp = 1720973747;
@@ -186,8 +174,7 @@ mod tests {
                 Some(MessageType::SuperChat),
                 None,
                 None,
-                Some(10),
-                Some(10),
+                None,
             )
             .unwrap();
         for message in result {

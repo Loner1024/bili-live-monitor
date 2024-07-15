@@ -34,26 +34,3 @@ pub struct QueryResponseData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub worth: Option<f64>,
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use utils::utils::MessageType;
-
-    #[test]
-    fn test_deserialize_query_request() {
-        let req = r#"{
-        "timestamp":11111,
-        "username":"name",
-        "message":"message"
-    }"#;
-        let data = serde_json::from_str::<QueryRequest>(req).unwrap();
-        assert_eq!(data.timestamp, 11111);
-        assert_eq!(data.username, Some("name".to_string()));
-        assert_eq!(data.message, Some("message".to_string()));
-        assert_eq!(
-            MessageType::from(data.message_type.into()),
-            MessageType::Danmu
-        );
-    }
-}

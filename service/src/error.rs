@@ -16,15 +16,11 @@ pub enum AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let (status, error_message) = match self {
-            _ => (StatusCode::OK, self.to_string()),
-        };
-
         let body = Json(ErrorResponse {
             code: -1,
-            message: error_message.to_string(),
+            message: self.to_string(),
         });
 
-        (status, body).into_response()
+        (StatusCode::OK, body).into_response()
     }
 }

@@ -7,7 +7,7 @@ use parse::Message;
 use queryer::Query;
 use std::sync::Arc;
 use tracing::info;
-use utils::utils::MessageType;
+use utils::utils::{MessageType, Pagination};
 
 pub async fn query(
     extract::State(storage): extract::State<Arc<Query>>,
@@ -59,8 +59,10 @@ pub async fn query(
         Some(message_type),
         req.username,
         req.message,
-        Some(req.limit),
-        Some(req.offset),
+        Some(Pagination {
+            limit: req.limit,
+            offset: req.offset,
+        }),
     ) {
         Ok(res) => res
             .iter()
