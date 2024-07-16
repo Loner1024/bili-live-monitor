@@ -21,23 +21,42 @@ import {Button} from "@/components/button";
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from '@/components/pagination'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faBilibili} from "@fortawesome/free-brands-svg-icons";
-import {useState} from "react";
+import React, {useState} from "react";
 import {streamers} from "@/data/streamers";
 import {faBackward} from "@fortawesome/free-solid-svg-icons";
-import {format, fromUnixTime} from "date-fns";
+import {format, fromUnixTime, parse} from "date-fns";
 import {Divider} from "@/components/divider";
 import {Badge} from "@/components/badge";
-import {useTheme} from '../context/ThemeContext';
+import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
+import useSWR, {mutate} from 'swr'
+import * as sea from "node:sea";
 
 interface streamer {
     id: number,
     nickname: string,
     username: string,
     bilibili_link: string,
+    room_id: number,
     avatar: string,
     small_avatar: string,
     description: string,
+}
+
+export interface DanmuMessageResponse {
+    code: number
+    message: string
+    count: number
+    data: DanmuMessage[],
+}
+
+export interface DanmuMessage {
+    uid: number
+    username: string
+    message: string
+    message_type: string
+    timestamp: number
+    worth: number | undefined
 }
 
 export function Stat({title, value, change}: { title: string; value: string; change: string }) {
@@ -54,15 +73,56 @@ export function Stat({title, value, change}: { title: string; value: string; cha
     )
 }
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const curDate = new Date();
+
 export default function Home() {
     const {theme, toggleTheme} = useTheme();
     const streamerData: streamer[] = streamers;
     const [selectedId, setSelectedId] = useState<number>(0);
-    const curDate = new Date();
+    const room_id = streamerData[selectedId].room_id;
+    let timestamp = getTimestampSecs(curDate);
+    const [searchText, setSearchText] = useState('');
+    const [selectedOption, setSelectedOption] = useState('danmu');
+    const [selectedDate, setSelectedDate] = useState<number>(getTimestampSecs(curDate));
+    const [danmuData, setDanmuData] = useState<DanmuMessage[]>([]);
+
+
+    const url = `http://localhost:8080/api/${room_id}`;
+
+    const init_url = `http://localhost:8080/api/${room_id}?timestamp=${timestamp}&limit=50&offset=0`;
+    const {
+        data: DanmuData,
+        error
+    } = useSWR<DanmuMessageResponse>(init_url, fetcher, {
+        onSuccess: (data) => setDanmuData(data.data),
+        revalidateOnFocus: false, // 禁用重新聚焦时重新请求
+        revalidateOnReconnect: false, // 禁用重新连接网络时重新请求
+        shouldRetryOnError: false,
+        refreshInterval: 0, // 禁用定时重新请求
+        loadingTimeout: 1000,
+    })
+
 
     const handleClick = (id: number) => {
         setSelectedId(id);
     };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const query = new URLSearchParams({
+            timestamp: String(selectedDate),
+            limit: "50",
+            offset: "0",
+            message_type: selectedOption,
+        });
+        if (searchText != '') {
+            query.set("message", searchText)
+        }
+        const newData: DanmuMessageResponse = await mutate(url + "?" + query.toString(), fetcher(url + "?" + query.toString()))
+        setDanmuData(newData.data)
+    };
+
     return (
         <div>
             <SidebarLayout
@@ -142,29 +202,32 @@ export default function Home() {
                         <Stat title="SC总数" value="5,888" change="+4.5%"/>
                         <Stat title="SC总价值" value="823,067" change="+21.2%"/>
                     </div>
-                    <Subheading className="mt-14">Recent orders</Subheading>
                 </div>
                 <div className={"mb-8"}>
-                    <form className={"flex flex-col mt-8 gap-4 md:flex-row"}>
+                    <form onSubmit={handleSubmit} className={"flex flex-col mt-8 gap-4 md:flex-row"}>
                         <InputGroup>
-                            <Input name="date" type={"date"} defaultValue={curDate.toISOString().substring(0, 10)}/>
+                            <Input
+                                onChange={(date) => setSelectedDate(getTimestampSecs(parse(date.target.value, "yyyy-MM-dd", new Date())))}
+                                name="date" type={"date"} defaultValue={curDate.toISOString().substring(0, 10)}/>
                         </InputGroup>
                         <div className={"basis-1/2"}>
                             <InputGroup>
                                 <MagnifyingGlassIcon/>
-                                <Input name="search" placeholder="Search&hellip;" aria-label="Search"/>
+                                <Input value={searchText} onChange={(e) => setSearchText(e.target.value)} name="search"
+                                       placeholder="Search&hellip;" aria-label="Search"/>
                             </InputGroup>
                         </div>
                         <div className={"basis-1/4"}>
-                            <Select aria-label="message type" name="message_type">
+                            <Select onChange={(e) => setSelectedOption(e.target.value)} aria-label="message type"
+                                    name="message_type">
                                 <option value="danmu">弹幕</option>
                                 <option value="super_chat">SC</option>
                             </Select>
                         </div>
-                        <Button className={"basis-1/4"} color={"dark/zinc"}>搜索</Button>
+                        <Button type={"submit"} className={"basis-1/4"} color={"dark/zinc"}>搜索</Button>
                     </form>
                 </div>
-                <div className={"flex flex-col h-96 mt-8"}>
+                <div className={"flex flex-col mt-8"}>
                     <Table>
                         <TableHead>
                             <TableRow>
@@ -176,19 +239,19 @@ export default function Home() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {users.map((user) => (
-                                <TableRow key={user.uid}>
-                                    <TableCell className="font-medium">{user.username}</TableCell>
-                                    <TableCell>{user.message}</TableCell>
+                            {danmuData?.map((danmu: DanmuMessage, index: number) => {
+                                return <TableRow key={index}>
+                                    <TableCell className="font-medium">{danmu.username}</TableCell>
+                                    <TableCell>{danmu.message}</TableCell>
                                     <TableCell
-                                        className="text-zinc-500">{user.message_type == "super_chat" ? "SC" : "弹幕"}</TableCell>
-                                    <TableCell>{getFormatTime(user.timestamp)}</TableCell>
-                                    <TableCell>{user.worth}</TableCell>
+                                        className="text-zinc-500">{danmu.message_type == "super_chat" ? "SC" : "弹幕"}</TableCell>
+                                    <TableCell>{getFormatTime(danmu.timestamp)}</TableCell>
+                                    <TableCell>{danmu.worth != undefined ? danmu.worth : 0.0}</TableCell>
                                 </TableRow>
-                            ))}
+                            })}
                         </TableBody>
                     </Table>
-                    <Pagination className={"mt-8 self-end"}>
+                    <Pagination className={"mt-8"}>
                         <PaginationPrevious href="?page=1"/>
                         <PaginationList>
                             <PaginationPage href="?page=1">1</PaginationPage>
@@ -210,53 +273,6 @@ function getFormatTime(timestamp: number) {
     return format(fromUnixTime(timestamp), 'yyyy-MM-dd HH:mm:ss');
 }
 
-const users = [
-    {
-        uid: 1,
-        username: "Leslie Alexander",
-        message_type: "danmu",
-        message: "喝水吧",
-        timestamp: 1720973747,
-        worth: 30.0
-    },
-    {
-        uid: 2,
-        username: "Leslie Alexander",
-        message_type: "danmu",
-        message: "喝水吧",
-        timestamp: 1720973747,
-        worth: 30.0
-    },
-    {
-        uid: 3,
-        username: "Leslie Alexander",
-        message_type: "danmu",
-        message: "喝水吧",
-        timestamp: 1720973747,
-        worth: 30.0
-    },
-    {
-        uid: 4,
-        username: "Leslie Alexander",
-        message_type: "danmu",
-        message: "喝水吧",
-        timestamp: 1720973747,
-        worth: 30.0
-    },
-    {
-        uid: 5,
-        username: "Leslie Alexander",
-        message_type: "danmu",
-        message: "喝水吧",
-        timestamp: 1720973747,
-        worth: 30.0
-    },
-    {
-        uid: 6,
-        username: "Leslie Alexander",
-        message_type: "super_chat",
-        message: "喝水吧",
-        timestamp: 1720973747,
-        worth: 30.0
-    },
-]
+function getTimestampSecs(date: { getTime: () => number }) {
+    return parseInt(String(date.getTime() / 1000))
+}
