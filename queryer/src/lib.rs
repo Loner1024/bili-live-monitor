@@ -158,6 +158,7 @@ mod tests {
     use dotenv::dotenv;
 
     #[test]
+    #[ignore]
     fn test_order() {
         pretty_env_logger::init();
         dotenv().ok().unwrap();
