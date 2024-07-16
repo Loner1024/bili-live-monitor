@@ -44,6 +44,7 @@ impl Query {
             username,
             message,
             pagination,
+            Some("timestamp DESC".to_string()),
         )?)?;
 
         let mut rows = query_stmt.query([])?;
@@ -95,6 +96,7 @@ impl Query {
             username,
             message,
             None,
+            None,
         )?)?;
 
         let mut rows = query_stmt.query([])?;
@@ -112,13 +114,14 @@ impl Query {
         username: Option<String>,
         message: Option<String>,
         pagination: Option<Pagination>,
+        order: Option<String>
     ) -> Result<String> {
         let mut contidition = Vec::new();
         if let Some(username) = username {
             contidition.push(format!("username = '{}'", username));
         }
         if let Some(message) = message {
-            contidition.push(format!("message LIKE '%{}%'", message));
+            contidition.push(format!("msg LIKE '%{}%'", message));
         }
         if let Some(message_type) = message_type {
             contidition.push(format!("msg_type = '{}'", i8::from(message_type)));
@@ -136,26 +139,48 @@ impl Query {
                 format!("LIMIT {} OFFSET {}", pagination.limit, pagination.offset)
             }
         };
-
+        let order_clause = match order {
+            None => String::from(""),
+            Some(order) => {
+                format!("ORDER BY {}", order)
+            }
+        };
         Ok(format!(
-            "SELECT {} FROM '{}' {} {}",
-            col, table, where_clause, pagination_clause
+            "SELECT {} FROM '{}' {} {} {}",
+            col, table, where_clause, order_clause, pagination_clause
         ))
     }
 
-    // async fn get_conn(&self) -> Result<PooledConnection<DuckdbConnectionManager>> {
-    //     let pool = self.pool.clone();
-    //     task::spawn_blocking(move || pool.get())
-    //         .await
-    //         .context("Failed to spawn blocking task")?
-    //         .context("Failed to get connection from pool")
-    // }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use dotenv::dotenv;
+
+    #[test]
+    fn test_order() {
+        pretty_env_logger::init();
+        dotenv().ok().unwrap();
+        let manager = DuckdbConnectionManager::memory().unwrap();
+        let pool = Pool::new(manager).unwrap();
+        let query = Query::new(pool).unwrap();
+        let room_id = 21533102;
+        let timestamp = 1721153475;
+        let result = query
+            .query(
+                room_id,
+                timestamp,
+                Some(MessageType::Danmu),
+                None,
+                None,
+                Some(Pagination{ limit: 10, offset: 0 }),
+            )
+            .unwrap();
+        for message in result {
+            println!("{:?}", message);
+        }
+    }
 
     #[test]
     #[ignore]
@@ -174,7 +199,7 @@ mod tests {
                 Some(MessageType::SuperChat),
                 None,
                 None,
-                None,
+                None
             )
             .unwrap();
         for message in result {

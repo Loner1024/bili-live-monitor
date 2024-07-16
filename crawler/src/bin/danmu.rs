@@ -16,7 +16,7 @@ async fn main() -> Result<()> {
     // 初始化 DuckDB
     let conn = Connection::open_in_memory()?;
     let mut start_time = Utc::now();
-    let room_id = 22747736;
+    let room_id = 21533102;
     // 创建 Storage 实例
     let mut storage = Storage::new(&conn, room_id, start_time.timestamp())?;
 

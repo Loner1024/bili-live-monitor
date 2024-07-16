@@ -471,6 +471,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "byteorder"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
+
+[[package]]
 name = "bytes"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -666,6 +672,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "626373a331b49f94b24edc4e53a59b0b354f085ac3b339d43d31da7a9b145004"
 dependencies = [
  "arrow",
+ "byteorder",
  "cast",
  "fallible-iterator",
  "fallible-streaming-iterator",

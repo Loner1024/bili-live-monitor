@@ -79,7 +79,7 @@ pub async fn query(
                     uid: message.uid,
                     username: message.username.clone(),
                     message: message.msg.clone(),
-                    message_type: MessageType::Danmu.to_string(),
+                    message_type: MessageType::SuperChat.to_string(),
                     timestamp: message.timestamp as i64,
                     worth: Some(message.worth),
                 },
