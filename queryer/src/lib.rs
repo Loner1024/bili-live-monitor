@@ -114,7 +114,7 @@ impl Query {
         username: Option<String>,
         message: Option<String>,
         pagination: Option<Pagination>,
-        order: Option<String>
+        order: Option<String>,
     ) -> Result<String> {
         let mut contidition = Vec::new();
         if let Some(username) = username {
@@ -150,7 +150,6 @@ impl Query {
             col, table, where_clause, order_clause, pagination_clause
         ))
     }
-
 }
 
 #[cfg(test)]
@@ -174,7 +173,10 @@ mod tests {
                 Some(MessageType::Danmu),
                 None,
                 None,
-                Some(Pagination{ limit: 10, offset: 0 }),
+                Some(Pagination {
+                    limit: 10,
+                    offset: 0,
+                }),
             )
             .unwrap();
         for message in result {
@@ -199,7 +201,7 @@ mod tests {
                 Some(MessageType::SuperChat),
                 None,
                 None,
-                None
+                None,
             )
             .unwrap();
         for message in result {

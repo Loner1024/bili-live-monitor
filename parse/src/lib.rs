@@ -252,7 +252,8 @@ impl BiliMessage {
         let msg = danmu[1].as_str().ok_or(anyhow!("Failed to get msg"))?;
         let timestamp = danmu[0][4]
             .as_u64()
-            .ok_or(anyhow!("Failed to get timestamp"))?/1000;
+            .ok_or(anyhow!("Failed to get timestamp"))?
+            / 1000;
         Ok(Message::Danmu(DanmuMessage {
             uid,
             username: username.to_string(),
