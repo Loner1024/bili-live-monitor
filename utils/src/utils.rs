@@ -80,7 +80,6 @@ pub fn get_table_name(bucket: &str, room_id: i64, timestamp: i64) -> Result<Stri
 pub fn is_new_day(old_timestamp: i64, new_timestamp: i64) -> Result<bool> {
     let old_day = get_local_midnight(old_timestamp)?;
     let new_day = get_local_midnight(new_timestamp)?;
-    println!("old_day: {}, new_day: {}", old_day, new_day);
 
     Ok(new_day > old_day)
 }

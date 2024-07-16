@@ -1,4 +1,5 @@
 use anyhow::Result;
+use axum::http::Method;
 use axum::routing::get;
 use axum::Router;
 use duckdb::DuckdbConnectionManager;
@@ -6,6 +7,7 @@ use queryer::Query;
 use r2d2::Pool;
 use std::sync::Arc;
 use tower::ServiceBuilder;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -29,8 +31,15 @@ async fn main() -> Result<()> {
     let pool = Pool::new(manager)?;
     let queryer = Arc::new(Query::new(pool)?);
 
+    let cors = CorsLayer::new()
+        // allow `GET` and `POST` when accessing the resource
+        .allow_methods([Method::GET, Method::POST])
+        // allow requests from any origin
+        .allow_origin(Any);
+
     let app = Router::new()
         .route("/api/:room_id", get(api::query))
+        .layer(cors)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(queryer);
 

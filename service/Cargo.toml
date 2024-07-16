@@ -18,5 +18,5 @@ dotenv = "0.15.0"
 tracing = "0.1.40"
 tracing-subscriber = { version =  "0.3.18", features = ["env-filter"] }
 tower = "0.4.13"
-tower-http = { version = "0.5.2", features = ["trace"] }
+tower-http = { version = "0.5.2", features = ["trace", "cors"] }
 parse = { path = "../parse" }
