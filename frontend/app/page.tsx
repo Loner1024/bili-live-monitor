@@ -19,9 +19,6 @@ import {Input, InputGroup} from '@/components/input'
 import {Select} from '@/components/select'
 import {Button} from "@/components/button";
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from '@/components/pagination'
-import {ChevronDownIcon,} from '@heroicons/react/16/solid'
-import {MagnifyingGlassIcon} from '@heroicons/react/20/solid'
-
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faBilibili} from "@fortawesome/free-brands-svg-icons";
 import {useState} from "react";
@@ -30,6 +27,8 @@ import {faBackward} from "@fortawesome/free-solid-svg-icons";
 import {format, fromUnixTime} from "date-fns";
 import {Divider} from "@/components/divider";
 import {Badge} from "@/components/badge";
+import {useTheme} from '../context/ThemeContext';
+import {ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 
 interface streamer {
     id: number,
@@ -56,6 +55,7 @@ export function Stat({title, value, change}: { title: string; value: string; cha
 }
 
 export default function Home() {
+    const {theme, toggleTheme} = useTheme();
     const streamerData: streamer[] = streamers;
     const [selectedId, setSelectedId] = useState<number>(0);
     const curDate = new Date();
@@ -88,7 +88,7 @@ export default function Home() {
                                 <Subheading>{streamerData[selectedId].description}</Subheading>
                             </div>
                         </SidebarHeader>
-                        <SidebarBody>
+                        <SidebarBody className={"justify-between"}>
                             <Dropdown>
                                 <DropdownButton as={SidebarItem} className="lg:mb-2.5">
                                     <SidebarLabel className={"flex grow gap-2 items-center text-base font-medium"}>
@@ -115,14 +115,20 @@ export default function Home() {
                                     </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
+                            <div>
+                                {selectedId != 0 ? <SidebarSection>
+                                    <SidebarItem onClick={() => handleClick(0)} className={"text-base font-medium"}>
+                                        <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
+                                        <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
+                                    </SidebarItem>
+                                </SidebarSection> : null}
+                            </div>
                         </SidebarBody>
                         <SidebarFooter>
-                            {selectedId != 0 ? <SidebarSection>
-                                <SidebarItem onClick={() => handleClick(0)} className={"text-base font-medium"}>
-                                    <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
-                                    <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
-                                </SidebarItem>
-                            </SidebarSection> : null}
+                            <div className={"flex cursor-pointer size-5"}
+                                 onClick={toggleTheme}>
+                                {theme == "dark" ? <MoonIcon color={"white"}/> : <SunIcon color={"black"}/>}
+                            </div>
                         </SidebarFooter>
                     </Sidebar>
                 }
@@ -206,7 +212,7 @@ function getFormatTime(timestamp: number) {
 
 const users = [
     {
-        uid: 1111,
+        uid: 1,
         username: "Leslie Alexander",
         message_type: "danmu",
         message: "喝水吧",
@@ -214,7 +220,7 @@ const users = [
         worth: 30.0
     },
     {
-        uid: 1111,
+        uid: 2,
         username: "Leslie Alexander",
         message_type: "danmu",
         message: "喝水吧",
@@ -222,7 +228,7 @@ const users = [
         worth: 30.0
     },
     {
-        uid: 1111,
+        uid: 3,
         username: "Leslie Alexander",
         message_type: "danmu",
         message: "喝水吧",
@@ -230,7 +236,7 @@ const users = [
         worth: 30.0
     },
     {
-        uid: 1111,
+        uid: 4,
         username: "Leslie Alexander",
         message_type: "danmu",
         message: "喝水吧",
@@ -238,7 +244,7 @@ const users = [
         worth: 30.0
     },
     {
-        uid: 1111,
+        uid: 5,
         username: "Leslie Alexander",
         message_type: "danmu",
         message: "喝水吧",
@@ -246,7 +252,7 @@ const users = [
         worth: 30.0
     },
     {
-        uid: 1111,
+        uid: 6,
         username: "Leslie Alexander",
         message_type: "super_chat",
         message: "喝水吧",
