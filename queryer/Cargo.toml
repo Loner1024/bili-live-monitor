@@ -10,7 +10,6 @@ parse = { path = "../parse" }
 utils = { path = "../utils" }
 log = "0.4.21"
 r2d2 = "0.8.10"
-tokio = "1.38.0"
 
 [dev-dependencies]
 dotenv = "0.15.0"
