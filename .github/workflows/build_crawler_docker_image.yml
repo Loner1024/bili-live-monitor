@@ -42,7 +42,7 @@ jobs:
           password: ${{ secrets.TENCENT_DOCKERHUB_TOKEN }}
       - name: set time
         run: |
-          TIME="$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')"
+          TIME="$(TZ='Asia/Shanghai' date +'%Y-%m-%d-%H:%M:%S')"
           echo "TIME=$TIME" >> $GITHUB_ENV
       - name: Build and push
         uses: docker/build-push-action@v5
