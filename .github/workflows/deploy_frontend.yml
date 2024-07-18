@@ -27,7 +27,7 @@ jobs:
         run: |
           npm install -g yarn
           yarn add -D next
-          yarn install --frozen-lockfile
+          yarn install
           yarn build
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
