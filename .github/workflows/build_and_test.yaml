@@ -65,6 +65,9 @@ jobs:
 
   Build-Crawler-Publish-Docker-Image:
     name: "Build Crawler & Publish Docker Image"
+    strategy:
+      matrix:
+        platform: [ ubuntu-latest ]
     runs-on: ${{ matrix.platform }}
     needs: build-test-rust
     steps:
