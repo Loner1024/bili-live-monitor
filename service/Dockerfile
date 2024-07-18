@@ -1,4 +1,4 @@
-FROM debian12
+FROM debian
 
 COPY target/release/service /usr/local/bin/service
 
