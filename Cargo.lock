@@ -610,6 +610,7 @@ dependencies = [
  "dotenv",
  "duckdb",
  "log",
+ "openssl-sys",
  "parse",
  "pretty_env_logger",
  "tokio",
