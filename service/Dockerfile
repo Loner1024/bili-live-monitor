@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/cc
+FROM gcr.io/distroless/cc-debian12
 
 COPY target/release/service /usr/local/bin/service
 
