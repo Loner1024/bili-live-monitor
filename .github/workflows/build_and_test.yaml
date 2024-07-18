@@ -88,6 +88,9 @@ jobs:
         run: |
           TIME="$(TZ='Asia/Shanghai' date +'%Y-%m-%d-%H-%M-%S')"
           echo "TIME=$TIME" >> $GITHUB_ENV
+      - name: Log
+        run: |
+          echo $(pwd)
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
