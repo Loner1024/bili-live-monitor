@@ -18,13 +18,23 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+            node-version: 22
+      - name: Build
+        working-directory: frontend
+        run: |
+          npm install -g yarn
+          yarn install --frozen-lockfile
+          npm run build
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 5dcdb6c96e93d90e6b34559e4d307671
           projectName: bilibili-monitor
-          directory: ./frontend
+          directory: ./frontend/out
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
         id: publish
       - name: Outputs
