@@ -25,11 +25,10 @@ import React, {useState} from "react";
 import {streamers} from "@/data/streamers";
 import {faBackward} from "@fortawesome/free-solid-svg-icons";
 import {format, fromUnixTime, parse} from "date-fns";
-import {Divider} from "@/components/divider";
-import {Badge} from "@/components/badge";
 import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import useSWR, {mutate} from 'swr'
+import {Stat} from "@/components/stat";
 import * as sea from "node:sea";
 
 interface streamer {
@@ -57,20 +56,6 @@ export interface DanmuMessage {
     message_type: string
     timestamp: number
     worth: number | undefined
-}
-
-export function Stat({title, value, change}: { title: string; value: string; change: string }) {
-    return (
-        <div>
-            <Divider/>
-            <div className="mt-6 text-lg/6 font-medium sm:text-sm/6">{title}</div>
-            <div className="mt-3 text-3xl/8 font-semibold sm:text-2xl/8">{value}</div>
-            <div className="mt-3 text-sm/6 sm:text-xs/6">
-                <Badge color={change.startsWith('+') ? 'lime' : 'pink'}>{change}</Badge>{' '}
-                <span className="text-zinc-500">from yesterday</span>
-            </div>
-        </div>
-    )
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
