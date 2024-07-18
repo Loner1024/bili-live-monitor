@@ -6,6 +6,7 @@ on:
       - master
     paths-ignore:
       - 'frontend/**'
+      - '.github/workflows/deploy_frontend.yml'
 permissions:
   contents: write
 
