@@ -63,7 +63,7 @@ jobs:
         with:
           body: ${{ steps.git-cliff.outputs.content }}
 
-  Build Crawler & Publish Docker Image:
+  Build-Crawler-Publish-Docker-Image:
     name: "Build Crawler & Publish Docker Image"
     runs-on: ${{ matrix.platform }}
     needs: build-test-rust
