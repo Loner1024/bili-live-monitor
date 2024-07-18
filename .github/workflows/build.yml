@@ -6,10 +6,6 @@ on:
       - master
     paths-ignore:
       - 'frontend/**'
-  pull_request:
-    branches:
-      - master
-
 permissions:
   contents: write
 
