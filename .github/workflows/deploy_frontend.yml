@@ -9,7 +9,7 @@ on:
     branches:
       - master
 jobs:
-  Deploy To Cloudflare Pages:
+  Deploy-To-Cloudflare-Pages:
     runs-on: ubuntu-latest
     permissions:
       contents: read
