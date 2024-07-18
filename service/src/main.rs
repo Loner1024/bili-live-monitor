@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(queryer);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080").await?;
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     axum::serve(listener, app).await?;
     Ok(())
 }
