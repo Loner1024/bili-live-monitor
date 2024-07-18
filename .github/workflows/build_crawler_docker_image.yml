@@ -24,6 +24,8 @@ jobs:
         with:
           packages: musl-tools # provides musl-gcc
           version: 1.0
+      - name: Install open-ssl
+        run: apt install libssl-dev
       - name: build rust
         run: cargo build -p crawler --target x86_64-unknown-linux-musl --release
       - name: Set up QEMU
