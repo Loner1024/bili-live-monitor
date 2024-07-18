@@ -1,5 +1,4 @@
-#FROM gcr.io/distroless/cc
-FROM alpine
+FROM gcr.io/distroless/cc
 
 COPY target/release/danmu /usr/local/bin/danmu
 
