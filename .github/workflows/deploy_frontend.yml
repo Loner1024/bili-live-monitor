@@ -5,6 +5,7 @@ on:
       - master
     paths:
         - 'frontend/**'
+        - '.github/workflows/deploy_frontend.yml'
 jobs:
   Deploy-To-Cloudflare-Pages:
     runs-on: ubuntu-latest
