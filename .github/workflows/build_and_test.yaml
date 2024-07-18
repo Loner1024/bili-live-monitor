@@ -16,10 +16,10 @@ permissions:
 jobs:
   build-test-rust:
     name: 'Build & Test'
-    strategy:
-      matrix:
-        platform: [ubuntu-latest]
-    runs-on: ${{ matrix.platform }}
+#    strategy:
+#      matrix:
+#        platform: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - name: Delete huge unnecessary tools folder
         run: rm -rf /opt/hostedtoolcache
@@ -65,10 +65,10 @@ jobs:
 
   Build-Crawler-Publish-Docker-Image:
     name: "Build Crawler & Publish Docker Image"
-    strategy:
-      matrix:
-        platform: [ ubuntu-latest ]
-    runs-on: ${{ matrix.platform }}
+#    strategy:
+#      matrix:
+#        platform: [ ubuntu-latest ]
+    runs-on: ubuntu-latest
     needs: build-test-rust
     steps:
       - uses: actions/checkout@v4
