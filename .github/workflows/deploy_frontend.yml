@@ -23,7 +23,7 @@ jobs:
         working-directory: frontend
         run: |
           npm install -g yarn
-          yarn add -D next
+          yarn global add next
           yarn install
       - name: Build the project
         working-directory: frontend
