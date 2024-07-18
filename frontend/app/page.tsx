@@ -60,6 +60,7 @@ export interface DanmuMessage {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const curDate = new Date();
+const baseURL = "http://43.138.202.44:31003"
 
 export default function Home() {
     const {theme, toggleTheme} = useTheme();
@@ -73,22 +74,9 @@ export default function Home() {
     const [danmuData, setDanmuData] = useState<DanmuMessage[]>([]);
 
 
-    const url = `http://localhost:8080/api/${room_id}`;
+    const url = `${baseURL}/api/${room_id}`;
 
-    const init_url = `http://localhost:8080/api/${room_id}?timestamp=${timestamp}&limit=50&offset=0`;
-    const {
-        data: DanmuData,
-        error
-    } = useSWR<DanmuMessageResponse>(init_url, fetcher, {
-        onSuccess: (data) => setDanmuData(data.data),
-        revalidateOnFocus: false, // 禁用重新聚焦时重新请求
-        revalidateOnReconnect: false, // 禁用重新连接网络时重新请求
-        shouldRetryOnError: false,
-        refreshInterval: 0, // 禁用定时重新请求
-        loadingTimeout: 1000,
-    })
-
-
+    const init_url = `${baseURL}/api/${room_id}?timestamp=${timestamp}&limit=50&offset=0`;
     const handleClick = (id: number) => {
         setSelectedId(id);
     };
