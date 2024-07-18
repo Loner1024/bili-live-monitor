@@ -71,14 +71,9 @@ jobs:
           submodules: recursive
       - name: Install Rust
         run: rustup toolchain install stable
-      - name: build rust
+      - uses: Swatinem/rust-cache@v2
+      - name: Build rust
         run: cargo build -p crawler --bin danmu --release
-      - name: Log Info
-        run: |
-          echo $(pwd)
-          echo $(ls -alh)
-          echo $(ls target)
-          echo $(ls target/release)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -89,7 +84,7 @@ jobs:
           registry: ccr.ccs.tencentyun.com
           username: ${{ secrets.TENCENT_DOCKERHUB_USERNAME }}
           password: ${{ secrets.TENCENT_DOCKERHUB_TOKEN }}
-      - name: set time
+      - name: Set time
         run: |
           TIME="$(TZ='Asia/Shanghai' date +'%Y-%m-%d-%H-%M-%S')"
           echo "TIME=$TIME" >> $GITHUB_ENV
