@@ -4,13 +4,12 @@ use crawler::storage::Storage;
 use danmu_client::danmu::Clinet;
 use dotenv::dotenv;
 use duckdb::Connection;
-use log::info;
+use log::{debug, info};
 use parse::Message;
 use utils::utils::is_new_day;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    dotenv().ok();
     pretty_env_logger::init_timed();
 
     // 初始化 DuckDB
@@ -21,6 +20,7 @@ async fn main() -> Result<()> {
     let mut storage = Storage::new(&conn, room_id, start_time.timestamp())?;
 
     let cookies = std::env::var("BILI_COOKIE")?;
+    debug!("{}", cookies);
 
     let client = Clinet::new(room_id as u64, &cookies)?;
     let mut rx = client.listen().await?;
