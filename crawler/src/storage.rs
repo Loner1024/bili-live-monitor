@@ -154,7 +154,7 @@ impl<'a> Storage<'a> {
         self.flush()?;
         // change timestamp
         self.timestamp = timestamp;
-        Self::init_table(&self.conn, &self.bucket, self.room_id, timestamp)?;
+        Self::init_table(self.conn, &self.bucket, self.room_id, timestamp)?;
         Ok(())
     }
 }
