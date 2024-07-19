@@ -63,6 +63,7 @@ async fn process_room(room_id: i64, cookies: String, conn: Connection) -> Result
         if is_new_day(start_time.timestamp(), now.timestamp())? {
             start_time = now;
             storage.switch_new_date(now.timestamp())?;
+            info!("切换到新的日期: {}", now);
         }
         match message {
             Message::Danmu(msg) => {
