@@ -1,5 +1,5 @@
 use chrono::{DateTime, Local};
-use danmu_client::danmu::Clinet;
+use danmu_client::danmu::Client;
 use dotenv::dotenv;
 use owo_colors::OwoColorize;
 use parse::Message;
@@ -12,7 +12,7 @@ async fn main() -> anyhow::Result<()> {
 
     let roomid = 22747736;
 
-    let client = Clinet::new(roomid, &cookies)?;
+    let client = Client::new(roomid, &cookies)?;
     let mut rx = client.listen().await?;
 
     while let Some(message) = rx.recv().await {

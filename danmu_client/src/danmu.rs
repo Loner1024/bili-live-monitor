@@ -16,14 +16,14 @@ use tokio::time;
 // const PORT: u16 = 2243;
 
 #[derive(Debug)]
-pub struct Clinet {
+pub struct Client {
     pub room_id: u64,
     pub cookies: HeaderMap,
     pub uid: u64,
     pub buvid: String,
 }
 
-impl Clinet {
+impl Client {
     pub fn new(room_id: u64, cookies: &str) -> Result<Self> {
         let mut headers = HeaderMap::new();
         headers.insert("Cookie", cookies.parse()?);
@@ -81,7 +81,7 @@ impl Clinet {
         let auth_packet = parse::build_auth_packet(&certificate);
 
         writer.write_all(&auth_packet).await?;
-        info!("Auth packet sent");
+        debug!("Auth packet sent");
         let mut buffer = [0; 1024];
 
         let n = reader.read(&mut buffer).await?; // read auth resp
