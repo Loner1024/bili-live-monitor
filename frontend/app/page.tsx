@@ -60,7 +60,7 @@ export interface DanmuMessage {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const curDate = new Date();
-const baseURL = "http://43.138.202.44:31003"
+const baseURL = "https://zongjian.uniix.dev"
 
 export default function Home() {
     const {theme, toggleTheme} = useTheme();
