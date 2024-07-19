@@ -91,7 +91,7 @@ jobs:
           context: .
           file: ./crawler/Dockerfile
           push: true
-          tags: ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:carwler-${{ env.TIME }}
+          tags: ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:crawler-${{ env.TIME }}
 
   Build-Service-Publish-Docker-Image:
     name: "Build Service & Publish Docker Image"
@@ -128,3 +128,35 @@ jobs:
           file: ./service/Dockerfile
           push: true
           tags: ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:service-${{ env.TIME }}
+
+  Deploy-Service:
+    runs-on: ubuntu-latest
+    needs: Build-Service-Publish-Docker-Image
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      - name: Set up Kubeconfig
+        run: echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/service service=ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:service-${{ env.TIME }} -n bilibili-monitor
+
+  Deploy-Crawler:
+    runs-on: ubuntu-latest
+    needs: Build-Crawler-Publish-Docker-Image
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      - name: Set up Kubeconfig
+        run: echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/crawler crawler=ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:crawler-${{ env.TIME }} -n bilibili-monitor
