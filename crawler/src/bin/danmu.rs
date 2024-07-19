@@ -2,7 +2,6 @@ use anyhow::Result;
 use chrono::Utc;
 use crawler::storage::Storage;
 use danmu_client::danmu::Clinet;
-use dotenv::dotenv;
 use duckdb::Connection;
 use log::{debug, info};
 use parse::Message;
