@@ -1,0 +1,25 @@
+name: Bilibili Cookies Handler
+
+on:
+  repository_dispatch:
+    types: [bilibili_daily_cookies]
+
+jobs:
+  handle-cookies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Update Crawler Cookies
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        with:
+          args: set env deployment/service BILI_COOKIE="${{ github.event.client_payload.cookies }}" -n bilibili-monitor
+      - name: Restart Deployments
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        with:
+          args: rollout restart deployments/crawler -n bilibili-monitor
