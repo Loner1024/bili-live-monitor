@@ -61,6 +61,8 @@ jobs:
     name: "Build Crawler & Publish Docker Image"
     runs-on: ubuntu-latest
     needs: build-test-rust
+    outputs:
+      tag: ${{ steps.set-time.outputs.TIME }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -82,9 +84,11 @@ jobs:
           username: ${{ secrets.TENCENT_DOCKERHUB_USERNAME }}
           password: ${{ secrets.TENCENT_DOCKERHUB_TOKEN }}
       - name: Set time
+        id: set-time
         run: |
           TIME="$(TZ='Asia/Shanghai' date +'%Y-%m-%d-%H-%M-%S')"
           echo "TIME=$TIME" >> $GITHUB_ENV
+          echo "TIME=$TIME" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -92,14 +96,13 @@ jobs:
           file: ./crawler/Dockerfile
           push: true
           tags: ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:crawler-${{ env.TIME }}
-      - name: Set Image Tag Output
-        id: crawler-image-tag
-        run: echo "CRAWLER_TAG=${{ env.TIME }}" >> "$GITHUB_OUTPUT"
 
   Build-Service-Publish-Docker-Image:
     name: "Build Service & Publish Docker Image"
     runs-on: ubuntu-latest
     needs: build-test-rust
+    outputs:
+      tag: ${{ steps.set-time.outputs.TIME }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -121,9 +124,11 @@ jobs:
           username: ${{ secrets.TENCENT_DOCKERHUB_USERNAME }}
           password: ${{ secrets.TENCENT_DOCKERHUB_TOKEN }}
       - name: Set time
+        id: set-time
         run: |
           TIME="$(TZ='Asia/Shanghai' date +'%Y-%m-%d-%H-%M-%S')"
           echo "TIME=$TIME" >> $GITHUB_ENV
+          echo "TIME=$TIME" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -131,9 +136,6 @@ jobs:
           file: ./service/Dockerfile
           push: true
           tags: ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:service-${{ env.TIME }}
-      - name: Set Image Tag Output
-        id: service-image-tag
-        run: echo "SERVICE_TAG=${{ env.TIME }}" >> "$GITHUB_OUTPUT"
 
   Deploy-Service:
     runs-on: ubuntu-latest
@@ -146,10 +148,10 @@ jobs:
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with:
-          args: set image deployment/crawler crawler=ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:crawler-${{ steps.crawler-image-tag.outputs.CRAWLER_TAG }} -n bilibili-monitor
+          args: set image deployment/crawler crawler=ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:crawler-${{ needs.Build-Crawler-Publish-Docker-Image.outputs.tag }} -n bilibili-monitor
       - name: Update Service Kubernetes Image
         uses: actions-hub/kubectl@master
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with:
-          args: set image deployment/service service=ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:service-${{ steps.service-image-tag.outputs.SERVICE_TAG }} -n bilibili-monitor
+          args: set image deployment/service service=ccr.ccs.tencentyun.com/uniix-app/bilibili-monitor:service-${{ needs.Build-Service-Publish-Docker-Image.outputs.tag }} -n bilibili-monitor
