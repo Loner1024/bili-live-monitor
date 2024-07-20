@@ -79,7 +79,9 @@ export default function Home() {
     const [queryParam, setQueryParam] = useState<QueryParam>({timestamp: getTimestampSecs(curDate), message: "", message_type: ""})
 
     const apiUrl = `${baseURL}/api/${room_id}?timestamp=${queryParam.timestamp}${queryParam.message == "" ? "" : "&message="+queryParam.message}${queryParam.message_type == "" ? "" : "&message_type="+queryParam.message_type}&limit=50&offset=0`;
-    const {data: danmuData, mutate} = useSWR<DanmuMessageResponse>(apiUrl, fetcher)
+    const {data: danmuData, mutate} = useSWR<DanmuMessageResponse>(apiUrl, fetcher, {
+        revalidateOnFocus: false,
+    })
 
     const handleClick = (id: number) => {
         setSelectedId(id);
