@@ -1,4 +1,5 @@
 use anyhow::Result;
+use base64::Engine;
 use chrono::Utc;
 use crawler::storage::Storage;
 use danmu_client::danmu::Client;
@@ -11,8 +12,9 @@ use utils::utils::is_new_day;
 #[tokio::main]
 async fn main() -> Result<()> {
     pretty_env_logger::init_timed();
-
-    let cookies = std::env::var("BILI_COOKIE")?;
+    let cookies = String::from_utf8(
+        base64::engine::general_purpose::STANDARD.decode(std::env::var("BILI_COOKIE")?)?,
+    )?;
     debug!("{}", cookies);
 
     let room_ids = vec![22747736, 21533102, 23649609]; // 传入多个 room_id
