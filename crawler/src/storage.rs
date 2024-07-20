@@ -62,7 +62,7 @@ impl<'a> Storage<'a> {
         Ok(())
     }
 
-    pub fn crate_super_chat_message(&mut self, message: SuperChatMessage) -> Result<()> {
+    pub fn create_super_chat_message(&mut self, message: SuperChatMessage) -> Result<()> {
         self.danmu_message_buffer.append_row(params![
             i8::from(MessageType::SuperChat),
             message.uid,
@@ -154,6 +154,7 @@ impl<'a> Storage<'a> {
         self.flush()?;
         // change timestamp
         self.timestamp = timestamp;
+        Self::init_table(self.conn, &self.bucket, self.room_id, timestamp)?;
         Ok(())
     }
 }
@@ -232,7 +233,7 @@ mod tests {
         for i in 0..10 {
             debug!("{}", i);
             storage
-                .crate_super_chat_message(super_chat.clone())
+                .create_super_chat_message(super_chat.clone())
                 .unwrap();
         }
         storage.danmu_message_buffer.flush().unwrap();

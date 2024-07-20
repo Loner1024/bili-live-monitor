@@ -9,6 +9,7 @@ use std::sync::Arc;
 use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
+use tracing::info;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -43,7 +44,8 @@ async fn main() -> Result<()> {
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(queryer);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8080").await?;
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
+    info!("Listening on http://0.0.0.0:8080");
     axum::serve(listener, app).await?;
     Ok(())
 }

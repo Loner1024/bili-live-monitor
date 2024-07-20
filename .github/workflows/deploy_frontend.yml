@@ -1,0 +1,45 @@
+name: Deploy Frontend
+on:
+  push:
+    branches:
+      - master
+    paths:
+        - 'frontend/**'
+        - '.github/workflows/deploy_frontend.yml'
+jobs:
+  Deploy-To-Cloudflare-Pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: "Deploy To Cloudflare Pages"
+    steps:
+      - name: Checkout & Setup Node.js
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          node-version: 22
+      - name: Install dependencies
+        working-directory: frontend
+        run: |
+          npm install -g yarn
+          yarn global add next
+          yarn install
+      - name: Build the project
+        working-directory: frontend
+        run: yarn build
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 5dcdb6c96e93d90e6b34559e4d307671
+          projectName: bilibili-monitor
+          directory: ./frontend/out
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        id: publish
+      - name: Outputs
+        run: |
+          echo "ID: ${{ steps.publish.outputs.id }}"
+          echo "URL: ${{ steps.publish.outputs.url }}"
+          echo "Environment: ${{ steps.publish.outputs.environment }}"
+          echo "Alias: ${{ steps.publish.outputs.alias }}"

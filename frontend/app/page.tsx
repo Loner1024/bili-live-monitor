@@ -25,12 +25,10 @@ import React, {useState} from "react";
 import {streamers} from "@/data/streamers";
 import {faBackward} from "@fortawesome/free-solid-svg-icons";
 import {format, fromUnixTime, parse} from "date-fns";
-import {Divider} from "@/components/divider";
-import {Badge} from "@/components/badge";
 import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
-import useSWR, {mutate} from 'swr'
-import * as sea from "node:sea";
+import useSWR from 'swr'
+import {Stat} from "@/components/stat";
 
 interface streamer {
     id: number,
@@ -59,21 +57,14 @@ export interface DanmuMessage {
     worth: number | undefined
 }
 
-export function Stat({title, value, change}: { title: string; value: string; change: string }) {
-    return (
-        <div>
-            <Divider/>
-            <div className="mt-6 text-lg/6 font-medium sm:text-sm/6">{title}</div>
-            <div className="mt-3 text-3xl/8 font-semibold sm:text-2xl/8">{value}</div>
-            <div className="mt-3 text-sm/6 sm:text-xs/6">
-                <Badge color={change.startsWith('+') ? 'lime' : 'pink'}>{change}</Badge>{' '}
-                <span className="text-zinc-500">from yesterday</span>
-            </div>
-        </div>
-    )
+interface QueryParam {
+    timestamp: number
+    message: string
+    message_type: string
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const baseURL = "https://zongjian.uniix.dev"
 const curDate = new Date();
 
 export default function Home() {
@@ -81,28 +72,14 @@ export default function Home() {
     const streamerData: streamer[] = streamers;
     const [selectedId, setSelectedId] = useState<number>(0);
     const room_id = streamerData[selectedId].room_id;
-    let timestamp = getTimestampSecs(curDate);
     const [searchText, setSearchText] = useState('');
     const [selectedOption, setSelectedOption] = useState('danmu');
     const [selectedDate, setSelectedDate] = useState<number>(getTimestampSecs(curDate));
-    const [danmuData, setDanmuData] = useState<DanmuMessage[]>([]);
 
+    const [queryParam, setQueryParam] = useState<QueryParam>({timestamp: getTimestampSecs(curDate), message: "", message_type: ""})
 
-    const url = `http://localhost:8080/api/${room_id}`;
-
-    const init_url = `http://localhost:8080/api/${room_id}?timestamp=${timestamp}&limit=50&offset=0`;
-    const {
-        data: DanmuData,
-        error
-    } = useSWR<DanmuMessageResponse>(init_url, fetcher, {
-        onSuccess: (data) => setDanmuData(data.data),
-        revalidateOnFocus: false, // 禁用重新聚焦时重新请求
-        revalidateOnReconnect: false, // 禁用重新连接网络时重新请求
-        shouldRetryOnError: false,
-        refreshInterval: 0, // 禁用定时重新请求
-        loadingTimeout: 1000,
-    })
-
+    const apiUrl = `${baseURL}/api/${room_id}?timestamp=${queryParam.timestamp}${queryParam.message == "" ? "" : "&message="+queryParam.message}${queryParam.message_type == "" ? "" : "&message_type="+queryParam.message_type}&limit=50&offset=0`;
+    const {data: danmuData, mutate} = useSWR<DanmuMessageResponse>(apiUrl, fetcher)
 
     const handleClick = (id: number) => {
         setSelectedId(id);
@@ -110,17 +87,8 @@ export default function Home() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const query = new URLSearchParams({
-            timestamp: String(selectedDate),
-            limit: "50",
-            offset: "0",
-            message_type: selectedOption,
-        });
-        if (searchText != '') {
-            query.set("message", searchText)
-        }
-        const newData: DanmuMessageResponse = await mutate(url + "?" + query.toString(), fetcher(url + "?" + query.toString()))
-        setDanmuData(newData.data)
+        setQueryParam({timestamp: selectedDate, message_type: selectedOption, message: searchText})
+        // await mutate()
     };
 
     return (
@@ -208,18 +176,22 @@ export default function Home() {
                         <InputGroup>
                             <Input
                                 onChange={(date) => setSelectedDate(getTimestampSecs(parse(date.target.value, "yyyy-MM-dd", new Date())))}
-                                name="date" type={"date"} defaultValue={curDate.toISOString().substring(0, 10)}/>
+                                name="date" type={"date"} defaultValue={getFormatTime(curDate.getTime()/1000).substring(0,10)}/>
                         </InputGroup>
                         <div className={"basis-1/2"}>
                             <InputGroup>
                                 <MagnifyingGlassIcon/>
-                                <Input value={searchText} onChange={(e) => setSearchText(e.target.value)} name="search"
+                                <Input value={searchText}
+                                       onChange={(data) => setSearchText(data.target.value)}
+                                       name="search"
                                        placeholder="Search&hellip;" aria-label="Search"/>
                             </InputGroup>
                         </div>
                         <div className={"basis-1/4"}>
-                            <Select onChange={(e) => setSelectedOption(e.target.value)} aria-label="message type"
-                                    name="message_type">
+                            <Select
+                                onChange={(data) => setSelectedOption(data.target.value)}
+                                aria-label="message type"
+                                name="message_type">
                                 <option value="danmu">弹幕</option>
                                 <option value="super_chat">SC</option>
                             </Select>
@@ -239,7 +211,7 @@ export default function Home() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {danmuData?.map((danmu: DanmuMessage, index: number) => {
+                            {danmuData?.data?.map((danmu: DanmuMessage, index: number) => {
                                 return <TableRow key={index}>
                                     <TableCell className="font-medium">{danmu.username}</TableCell>
                                     <TableCell>{danmu.message}</TableCell>
