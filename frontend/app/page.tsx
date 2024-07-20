@@ -21,14 +21,14 @@ import {Button} from "@/components/button";
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from '@/components/pagination'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faBilibili} from "@fortawesome/free-brands-svg-icons";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {streamers} from "@/data/streamers";
 import {faBackward} from "@fortawesome/free-solid-svg-icons";
 import {format, fromUnixTime, parse} from "date-fns";
 import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
-import useSWR from 'swr'
 import {Stat} from "@/components/stat";
+import {QueryClient, QueryClientProvider, useQuery, useQueryClient} from '@tanstack/react-query';
 
 interface streamer {
     id: number,
@@ -63,34 +63,18 @@ interface QueryParam {
     message_type: string
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-const baseURL = "https://zongjian.uniix.dev"
-const curDate = new Date();
+const queryClient = new QueryClient();
+
 
 export default function Home() {
     const {theme, toggleTheme} = useTheme();
     const streamerData: streamer[] = streamers;
     const [selectedId, setSelectedId] = useState<number>(0);
     const room_id = streamerData[selectedId].room_id;
-    const [searchText, setSearchText] = useState('');
-    const [selectedOption, setSelectedOption] = useState('danmu');
-    const [selectedDate, setSelectedDate] = useState<number>(getTimestampSecs(curDate));
 
-    const [queryParam, setQueryParam] = useState<QueryParam>({timestamp: getTimestampSecs(curDate), message: "", message_type: ""})
-
-    const apiUrl = `${baseURL}/api/${room_id}?timestamp=${queryParam.timestamp}${queryParam.message == "" ? "" : "&message="+queryParam.message}${queryParam.message_type == "" ? "" : "&message_type="+queryParam.message_type}&limit=50&offset=0`;
-    const {data: danmuData, mutate} = useSWR<DanmuMessageResponse>(apiUrl, fetcher, {
-        revalidateOnFocus: false,
-    })
 
     const handleClick = (id: number) => {
         setSelectedId(id);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setQueryParam({timestamp: selectedDate, message_type: selectedOption, message: searchText})
-        // await mutate()
     };
 
     return (
@@ -164,83 +148,201 @@ export default function Home() {
                 }
             >
                 {/* The page content */}
-                <div>
-                    <Heading>Today</Heading>
-                    <div className="mt-4 grid gap-8 sm:grid-cols-2 xl:grid-cols-4 dark:text-white">
-                        <Stat title="弹幕总数" value="$2.6M" change="+4.5%"/>
-                        <Stat title="弹幕人数" value="$455" change="-0.5%"/>
-                        <Stat title="SC总数" value="5,888" change="+4.5%"/>
-                        <Stat title="SC总价值" value="823,067" change="+21.2%"/>
-                    </div>
-                </div>
-                <div className={"mb-8"}>
-                    <form onSubmit={handleSubmit} className={"flex flex-col mt-8 gap-4 md:flex-row"}>
-                        <InputGroup>
-                            <Input
-                                onChange={(date) => setSelectedDate(getTimestampSecs(parse(date.target.value, "yyyy-MM-dd", new Date())))}
-                                name="date" type={"date"} defaultValue={getFormatTime(curDate.getTime()/1000).substring(0,10)}/>
-                        </InputGroup>
-                        <div className={"basis-1/2"}>
-                            <InputGroup>
-                                <MagnifyingGlassIcon/>
-                                <Input value={searchText}
-                                       onChange={(data) => setSearchText(data.target.value)}
-                                       name="search"
-                                       placeholder="Search&hellip;" aria-label="Search"/>
-                            </InputGroup>
-                        </div>
-                        <div className={"basis-1/4"}>
-                            <Select
-                                onChange={(data) => setSelectedOption(data.target.value)}
-                                aria-label="message type"
-                                name="message_type">
-                                <option value="danmu">弹幕</option>
-                                <option value="super_chat">SC</option>
-                            </Select>
-                        </div>
-                        <Button type={"submit"} className={"basis-1/4"} color={"dark/zinc"}>搜索</Button>
-                    </form>
-                </div>
-                <div className={"flex flex-col mt-8"}>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableHeader>昵称</TableHeader>
-                                <TableHeader>弹幕内容</TableHeader>
-                                <TableHeader>类型</TableHeader>
-                                <TableHeader>发送时间</TableHeader>
-                                <TableHeader>价值</TableHeader>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {danmuData?.data?.map((danmu: DanmuMessage, index: number) => {
-                                return <TableRow key={index}>
-                                    <TableCell className="font-medium">{danmu.username}</TableCell>
-                                    <TableCell>{danmu.message}</TableCell>
-                                    <TableCell
-                                        className="text-zinc-500">{danmu.message_type == "super_chat" ? "SC" : "弹幕"}</TableCell>
-                                    <TableCell>{getFormatTime(danmu.timestamp)}</TableCell>
-                                    <TableCell>{danmu.worth != undefined ? danmu.worth : 0.0}</TableCell>
-                                </TableRow>
-                            })}
-                        </TableBody>
-                    </Table>
-                    <Pagination className={"mt-8"}>
-                        <PaginationPrevious href="?page=1"/>
-                        <PaginationList>
-                            <PaginationPage href="?page=1">1</PaginationPage>
-                            <PaginationPage href="?page=2" current>
-                                2
-                            </PaginationPage>
-                            <PaginationPage href="?page=3">3</PaginationPage>
-                        </PaginationList>
-                        <PaginationNext href="?page=3"/>
-                    </Pagination>
-                </div>
+
+                <QueryClientProvider client={queryClient}>
+                    <DataTable roomId={room_id.toString()}/>
+                </QueryClientProvider>
+
             </SidebarLayout>
         </div>
-
     );
+}
+
+const baseURL = "https://zongjian.uniix.dev"
+const curDate = new Date();
+
+const fetcher = async (params: {
+    room_id: string,
+    message?: string,
+    message_type?: string,
+    timestamp: number,
+    limit: number,
+    offset: number
+}): Promise<DanmuMessageResponse> => {
+    const {room_id, ...queryParameters} = params;
+    const query = new URLSearchParams({
+        timestamp: queryParameters.timestamp.toString(),
+        limit: queryParameters.limit.toString(),
+        offset: queryParameters.offset.toString(),
+    });
+    queryParameters.message != "" ? query.set("message", queryParameters.message || '') : null;
+    queryParameters.message_type != "" ? query.set("message_type", queryParameters.message_type || 'danmu') : null;
+
+    const response = await fetch(`${baseURL}/api/${room_id}?${query}`);
+
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+
+    return response.json();
+};
+
+interface DataFetcherProps {
+    roomId: string;
+}
+
+const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
+    const [message, setMessage] = useState('');
+    const [messageType, setMessageType] = useState('');
+    const [timestamp, setTimestamp] = useState(getTimestampSecs(curDate));
+    const [limit, setLimit] = useState(50);
+    const [offset, setOffset] = useState(0);
+
+
+    const queryClient = useQueryClient();
+
+    const [queryParam, setQueryParam] = useState<QueryParam>({
+        timestamp: getTimestampSecs(curDate),
+        message: "",
+        message_type: ""
+    })
+
+    useEffect(() => {
+        setOffset(0)
+        setMessageType("danmu")
+        setMessage("")
+        setTimestamp(getTimestampSecs(curDate))
+        setQueryParam(prev => ({...prev, message: "", message_type: "danmu", timestamp: getTimestampSecs(curDate)}))
+    }, [roomId]);
+
+    const {data: danmuData, error, isLoading} = useQuery<DanmuMessageResponse, Error>(
+        {
+            queryKey: [`data`, roomId, queryParam, limit, offset],
+            queryFn: () => fetcher({
+                room_id: roomId,
+                message: queryParam.message,
+                message_type: queryParam.message_type,
+                timestamp: queryParam.timestamp,
+                limit,
+                offset
+            })
+        },
+        queryClient
+    );
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setOffset(0)
+        setQueryParam(prev => ({...prev, message: message, message_type: messageType, timestamp: timestamp}));
+    };
+
+    const handleNextPage = () => {
+        setOffset(prevOffset => prevOffset + limit);
+    };
+
+    const handlePrevPage = () => {
+        setOffset(prevOffset => Math.max(prevOffset - limit, 0));
+    };
+
+    const jumpToPage = (i: number) => {
+        setOffset(i * limit);
+    }
+
+    const totalPage = Math.ceil(danmuData == null ? 0 : danmuData?.count / limit);
+    const currentPage = (offset / limit) + 1;
+    const startPage = currentPage > 3 ? currentPage - 3 : 0
+    const endPage = Math.min(currentPage > 3 ? currentPage + 1 : 4, totalPage - 1)
+    const range = (start: number, stop: number, step: number) =>
+        Array.from({length: (stop - start) / step + 1}, (_, i) => start + i * step);
+
+    return (
+        <div>
+            <div>
+                <Heading>Today</Heading>
+                <div className="mt-4 grid gap-8 sm:grid-cols-2 xl:grid-cols-4 dark:text-white">
+                    <Stat title="弹幕总数" value="$2.6M" change="+4.5%"/>
+                    <Stat title="弹幕人数" value="$455" change="-0.5%"/>
+                    <Stat title="SC总数" value="5,888" change="+4.5%"/>
+                    <Stat title="SC总价值" value="823,067" change="+21.2%"/>
+                </div>
+            </div>
+            <div className={"mb-8"}>
+                <form onSubmit={handleSubmit} className={"flex flex-col mt-8 gap-4 md:flex-row"}>
+                    <InputGroup>
+                        <Input
+                            onChange={(date) => setTimestamp(getTimestampSecs(parse(date.target.value, "yyyy-MM-dd", new Date())))}
+                            name="date" type={"date"} defaultValue={getFormatTime(timestamp).substring(0, 10)}/>
+                    </InputGroup>
+                    <div className={"basis-1/2"}>
+                        <InputGroup>
+                            <MagnifyingGlassIcon/>
+                            <Input value={message}
+                                   onChange={(data) => setMessage(data.target.value)}
+                                   name="search"
+                                   placeholder="Search&hellip;" aria-label="Search"/>
+                        </InputGroup>
+                    </div>
+                    <div className={"basis-1/4"}>
+                        <Select
+                            value={messageType}
+                            onChange={(data) => setMessageType(data.target.value)}
+                            aria-label="message type"
+                            name="message_type">
+                            <option value="danmu">弹幕</option>
+                            <option value="super_chat">SC</option>
+                        </Select>
+                    </div>
+                    <Button
+                        // disabled={submitButtonStatus}
+                        type={"submit"}
+                        className={"basis-1/4"}
+                        color={"dark/zinc"}>
+                        {/*{submitButtonStatus ? <ArrowPathIcon className={"animate-spin"}/> : null}*/}
+                        搜索
+                    </Button>
+                </form>
+            </div>
+            <div className={"flex flex-col mt-8"}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableHeader>昵称</TableHeader>
+                            <TableHeader>弹幕内容</TableHeader>
+                            <TableHeader>类型</TableHeader>
+                            <TableHeader>发送时间</TableHeader>
+                            <TableHeader>价值</TableHeader>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {danmuData?.data?.map((danmu: DanmuMessage, index: number) => {
+                            return <TableRow key={index}>
+                                <TableCell className="font-medium">{danmu.username}</TableCell>
+                                <TableCell>{danmu.message}</TableCell>
+                                <TableCell
+                                    className="text-zinc-500">{danmu.message_type == "super_chat" ? "SC" : "弹幕"}</TableCell>
+                                <TableCell>{getFormatTime(danmu.timestamp)}</TableCell>
+                                <TableCell>{danmu.worth != undefined ? danmu.worth : 0.0}</TableCell>
+                            </TableRow>
+                        })}
+                    </TableBody>
+                </Table>
+                <Pagination className={"mt-8"}>
+                    <PaginationPrevious disable={currentPage == 1} onClick={handlePrevPage}/>
+                    <PaginationList>
+                        {
+                            range(startPage, endPage, 1).map((i) => (
+                                <PaginationPage className={"hover:cursor-pointer"} onClick={() => jumpToPage(i)} key={i}
+                                                current={i + 1 === currentPage}>
+                                    {i + 1}
+                                </PaginationPage>
+                            ))
+                        }
+                    </PaginationList>
+                    <PaginationNext disable={currentPage == totalPage} onClick={handleNextPage}/>
+                </Pagination>
+            </div>
+        </div>
+    )
 }
 
 function getFormatTime(timestamp: number) {
