@@ -52,7 +52,7 @@ impl TryFrom<&[u8]> for Message {
         let s = str::from_utf8(data).map_err(|e| anyhow!("utf8 error: {}", e))?;
         let bili_message = serde_json::from_str::<BiliMessage>(s)?;
         match bili_message.cmd.as_ref().unwrap().as_str() {
-            "DANMU_MSG" => bili_message.get_danmu_mesage(),
+            "DANMU_MSG" => bili_message.get_danmu_message(),
             "INTERACT_WORD" => bili_message.get_enter_room(),
             "SUPER_CHAT_MESSAGE" => bili_message.get_super_chat(),
             "ONLINE_RANK_COUNT" => bili_message.get_online_count(),
@@ -240,7 +240,7 @@ pub struct UinfoBase {
 }
 
 impl BiliMessage {
-    fn get_danmu_mesage(self) -> Result<Message> {
+    fn get_danmu_message(self) -> Result<Message> {
         if self.cmd != Some("DANMU_MSG".to_string()) {
             return Err(anyhow!("Not a Danmu message"));
         }
