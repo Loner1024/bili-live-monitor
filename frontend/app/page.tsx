@@ -26,7 +26,7 @@ import {streamers} from "@/data/streamers";
 import {faBackward} from "@fortawesome/free-solid-svg-icons";
 import {format, fromUnixTime, parse} from "date-fns";
 import {useTheme} from '@/context/ThemeContext';
-import {ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
+import {ArrowPathIcon, ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import {Stat} from "@/components/stat";
 import {QueryClient, QueryClientProvider, useQuery, useQueryClient} from '@tanstack/react-query';
 
@@ -293,56 +293,70 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
                         </Select>
                     </div>
                     <Button
-                        // disabled={submitButtonStatus}
+                        disabled={isLoading}
                         type={"submit"}
                         className={"basis-1/4"}
                         color={"dark/zinc"}>
-                        {/*{submitButtonStatus ? <ArrowPathIcon className={"animate-spin"}/> : null}*/}
+                        {isLoading ? <ArrowPathIcon className={"animate-spin"}/> : null}
+                        {!isLoading ? <MagnifyingGlassIcon/> : null}
                         搜索
                     </Button>
                 </form>
             </div>
-            <div className={"flex flex-col mt-8"}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableHeader>昵称</TableHeader>
-                            <TableHeader>弹幕内容</TableHeader>
-                            <TableHeader>类型</TableHeader>
-                            <TableHeader>发送时间</TableHeader>
-                            <TableHeader>价值</TableHeader>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {danmuData?.data?.map((danmu: DanmuMessage, index: number) => {
-                            return <TableRow key={index}>
-                                <TableCell className="font-medium">{danmu.username}</TableCell>
-                                <TableCell>{danmu.message}</TableCell>
-                                <TableCell
-                                    className="text-zinc-500">{danmu.message_type == "super_chat" ? "SC" : "弹幕"}</TableCell>
-                                <TableCell>{getFormatTime(danmu.timestamp)}</TableCell>
-                                <TableCell>{danmu.worth != undefined ? danmu.worth : 0.0}</TableCell>
-                            </TableRow>
-                        })}
-                    </TableBody>
-                </Table>
-                <Pagination className={"mt-8"}>
-                    <PaginationPrevious disable={currentPage == 1} onClick={handlePrevPage}/>
-                    <PaginationList>
-                        {
-                            range(startPage, endPage, 1).map((i) => (
-                                <PaginationPage className={"hover:cursor-pointer"} onClick={() => jumpToPage(i)} key={i}
-                                                current={i + 1 === currentPage}>
-                                    {i + 1}
-                                </PaginationPage>
-                            ))
-                        }
-                    </PaginationList>
-                    <PaginationNext disable={currentPage == totalPage} onClick={handleNextPage}/>
-                </Pagination>
-            </div>
+                    <div className={"flex flex-col mt-8"}>
+                        {isLoading ? <Loading />: null}
+                        <Table hidden={isLoading}>
+                            <TableHead>
+                                <TableRow>
+                                    <TableHeader>昵称</TableHeader>
+                                    <TableHeader>弹幕内容</TableHeader>
+                                    <TableHeader>类型</TableHeader>
+                                    <TableHeader>发送时间</TableHeader>
+                                    <TableHeader>价值</TableHeader>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {danmuData?.data?.map((danmu: DanmuMessage, index: number) => {
+                                    return <TableRow key={index}>
+                                        <TableCell className="font-medium">{danmu.username}</TableCell>
+                                        <TableCell>{danmu.message}</TableCell>
+                                        <TableCell
+                                            className="text-zinc-500">{danmu.message_type == "super_chat" ? "SC" : "弹幕"}</TableCell>
+                                        <TableCell>{getFormatTime(danmu.timestamp)}</TableCell>
+                                        <TableCell>{danmu.worth != undefined ? danmu.worth : 0.0}</TableCell>
+                                    </TableRow>
+                                })}
+                            </TableBody>
+                        </Table>
+
+                        <Pagination className={"mt-8"}>
+                            <PaginationPrevious disable={currentPage == 1} onClick={handlePrevPage}/>
+                            <PaginationList>
+                                {
+                                    range(startPage, endPage, 1).map((i) => (
+                                        <PaginationPage className={"hover:cursor-pointer"} onClick={() => jumpToPage(i)}
+                                                        key={i}
+                                                        current={i + 1 === currentPage}>
+                                            {i + 1}
+                                        </PaginationPage>
+                                    ))
+                                }
+                            </PaginationList>
+                            <PaginationNext disable={currentPage == totalPage} onClick={handleNextPage}/>
+                        </Pagination>
+                    </div>
+                </div>
+                )
+            }
+
+const Loading = () => {
+    return (
+        <div className={"flex justify-center items-center h-96 w-full"}>
+        <div className={"flex justify-center items-center size-1/12"}>
+            <ArrowPathIcon className={"animate-spin text-gray-500"}/>
         </div>
-    )
+    </div>
+)
 }
 
 function getFormatTime(timestamp: number) {
