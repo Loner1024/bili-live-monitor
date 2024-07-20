@@ -300,7 +300,7 @@ impl BiliMessage {
             uid: user_info.uid,
             username: user_info.base.name,
             msg: data.message.ok_or(anyhow!("Failed to get data"))?,
-            timestamp: self.send_time.ok_or(anyhow!("Failed to get send_time"))?,
+            timestamp: self.send_time.ok_or(anyhow!("Failed to get send_time"))? / 1000,
             worth: data.price.ok_or(anyhow!("Failed to get worth"))?,
         }))
     }
