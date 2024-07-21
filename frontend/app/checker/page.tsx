@@ -143,7 +143,7 @@ const fetcher = async (params: {
         timestamp: params.timestamp.toString(),
     });
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/checker?${query}`);
+    const response = await fetch(`${process.env.API_URL}/api/checker?${query}`);
 
     if (!response.ok) {
         throw new Error('Network response was not ok');

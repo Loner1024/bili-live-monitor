@@ -11,6 +11,9 @@ const nextConfig = {
             },
         ],
     },
+    env: {
+        API_URL: "https://zongjian.uniix.dev"
+    }
 };
 
 export default nextConfig;

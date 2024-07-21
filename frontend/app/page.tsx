@@ -46,7 +46,7 @@ const fetcher = async (params: {
     queryParameters.message != "" ? query.set("message", queryParameters.message || '') : null;
     queryParameters.message_type != "" ? query.set("message_type", queryParameters.message_type || 'danmu') : null;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/${room_id}?${query}`);
+    const response = await fetch(`${process.env.API_URL}/api/${room_id}?${query}`);
 
     if (!response.ok) {
         throw new Error('Network response was not ok');
