@@ -49,7 +49,7 @@ const DataTable = () => {
 
     const {data: response, isLoading} = useQuery<QueryResponseData, Error>(
         {
-            queryKey: [`data`, queryParam.uid],
+            queryKey: [`data`, queryParam.uid, queryParam.timestamp],
             queryFn: () => fetcher({
                 uid: queryParam.uid,
                 timestamp: queryParam.timestamp,
