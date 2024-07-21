@@ -53,9 +53,10 @@ const DataTable = () => {
             queryFn: () => fetcher({
                 uid: queryParam.uid,
                 timestamp: queryParam.timestamp,
-            })
+            }),
+            refetchOnWindowFocus: false,
         },
-        queryClient
+        queryClient,
     );
 
     const handleSubmit = (e: React.FormEvent) => {
