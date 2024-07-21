@@ -1,13 +1,15 @@
 use crate::error::AppError;
-use crate::model::{QueryRequest, QueryResponse, QueryResponseData};
+use crate::model::{
+    message_to_checker_response_date, message_vec_to_query_response_data_vec, CheckerRequest,
+    CheckerResponse, QueryRequest, QueryResponse,
+};
 use axum::extract;
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::Json;
-use parse::Message;
 use queryer::Query;
 use std::sync::Arc;
 use tracing::info;
-use utils::utils::{MessageType, Pagination};
+use utils::utils::{get_rooms, MessageType, Pagination};
 
 pub async fn query(
     extract::State(storage): extract::State<Arc<Query>>,
@@ -21,21 +23,14 @@ pub async fn query(
             return Err(AppError::ParamError(format!("parse room id error: {}", e)));
         }
     };
-    let req = match req {
-        Ok(req) => req.0,
-        Err(e) => {
-            info!("parse query request error: {}", e);
-            return Err(AppError::ParamError(format!(
-                "parse query request error: {}",
-                e
-            )));
-        }
-    };
+
+    let req = extract_req(req)?;
     let message_type: MessageType = req.message_type.into();
     let count = match storage.query_count(
         room_id,
         req.timestamp,
         Some(message_type),
+        None,
         req.username.clone(),
         req.message.clone(),
     ) {
@@ -57,6 +52,7 @@ pub async fn query(
         room_id,
         req.timestamp,
         Some(message_type),
+        None,
         req.username,
         req.message,
         Some(Pagination {
@@ -64,28 +60,7 @@ pub async fn query(
             offset: req.offset,
         }),
     ) {
-        Ok(res) => res
-            .iter()
-            .map(|message| match message {
-                Message::Danmu(message) => QueryResponseData {
-                    uid: message.uid,
-                    username: message.username.clone(),
-                    message: message.msg.clone(),
-                    message_type: MessageType::Danmu.to_string(),
-                    timestamp: message.timestamp as i64,
-                    worth: None,
-                },
-                Message::SuperChat(message) => QueryResponseData {
-                    uid: message.uid,
-                    username: message.username.clone(),
-                    message: message.msg.clone(),
-                    message_type: MessageType::SuperChat.to_string(),
-                    timestamp: message.timestamp as i64,
-                    worth: Some(message.worth),
-                },
-                _ => todo!(),
-            })
-            .collect(),
+        Ok(res) => message_vec_to_query_response_data_vec(res)?,
         Err(e) => {
             info!("query from db error: {}", e);
             return Err(AppError::QueryError);
@@ -98,4 +73,44 @@ pub async fn query(
         count,
         data: query_result,
     }))
+}
+
+pub async fn checker(
+    extract::State(storage): extract::State<Arc<Query>>,
+    req: Result<extract::Query<CheckerRequest>, QueryRejection>,
+) -> Result<Json<CheckerResponse>, AppError> {
+    let req = extract_req(req)?;
+    let mut result = vec![];
+    for room in get_rooms() {
+        match storage.query(room, req.timestamp, None, Some(req.uid), None, None, None) {
+            Ok(data) => {
+                for message in data {
+                    result.push(message_to_checker_response_date(room, &message)?);
+                }
+            }
+            Err(e) => {
+                info!("query from db error: {}", e);
+                return Err(AppError::QueryError);
+            }
+        };
+    }
+
+    Ok(Json(CheckerResponse {
+        code: 0,
+        message: "success".to_string(),
+        data: result,
+    }))
+}
+
+fn extract_req<T>(req: Result<extract::Query<T>, QueryRejection>) -> Result<T, AppError> {
+    match req {
+        Ok(req) => Ok(req.0),
+        Err(e) => {
+            info!("parse query request error: {}", e);
+            Err(AppError::ParamError(format!(
+                "parse query request error: {}",
+                e
+            )))
+        }
+    }
 }

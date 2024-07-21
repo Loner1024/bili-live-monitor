@@ -40,6 +40,7 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .route("/api/:room_id", get(api::query))
+        .route("/api/checker", get(api::checker))
         .layer(cors)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(queryer);

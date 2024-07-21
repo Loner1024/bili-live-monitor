@@ -26,11 +26,13 @@ impl Query {
         })
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn query(
         &self,
         room_id: i64,
         timestamp: i64,
         message_type: Option<MessageType>,
+        uid: Option<u64>,
         username: Option<String>,
         message: Option<String>,
         pagination: Option<Pagination>,
@@ -41,6 +43,7 @@ impl Query {
             room_id,
             timestamp,
             message_type,
+            uid,
             username,
             message,
             pagination,
@@ -84,6 +87,7 @@ impl Query {
         room_id: i64,
         timestamp: i64,
         message_type: Option<MessageType>,
+        uid: Option<u64>,
         username: Option<String>,
         message: Option<String>,
     ) -> Result<usize> {
@@ -93,6 +97,7 @@ impl Query {
             room_id,
             timestamp,
             message_type,
+            uid,
             username,
             message,
             None,
@@ -111,6 +116,7 @@ impl Query {
         room_id: i64,
         timestamp: i64,
         message_type: Option<MessageType>,
+        uid: Option<u64>,
         username: Option<String>,
         message: Option<String>,
         pagination: Option<Pagination>,
@@ -125,6 +131,9 @@ impl Query {
         }
         if let Some(message_type) = message_type {
             contidition.push(format!("msg_type = '{}'", i8::from(message_type)));
+        }
+        if let Some(uid) = uid {
+            contidition.push(format!("uid = {}", uid));
         }
         let where_clause = if contidition.is_empty() {
             String::from("")
@@ -174,6 +183,7 @@ mod tests {
                 Some(MessageType::Danmu),
                 None,
                 None,
+                None,
                 Some(Pagination {
                     limit: 10,
                     offset: 0,
@@ -200,6 +210,7 @@ mod tests {
                 room_id,
                 timestamp,
                 Some(MessageType::SuperChat),
+                None,
                 None,
                 None,
                 None,

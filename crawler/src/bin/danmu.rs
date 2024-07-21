@@ -7,7 +7,7 @@ use duckdb::Connection;
 use log::{debug, error, info};
 use parse::Message;
 use tokio::task::LocalSet;
-use utils::utils::is_new_day;
+use utils::utils::{get_rooms, is_new_day};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -17,7 +17,7 @@ async fn main() -> Result<()> {
     )?;
     debug!("{}", cookies);
 
-    let room_ids = vec![22747736, 21533102, 23649609]; // 传入多个 room_id
+    let room_ids = get_rooms(); // 传入多个 room_id
 
     let local_set = LocalSet::new();
 
