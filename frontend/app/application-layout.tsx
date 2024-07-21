@@ -21,6 +21,7 @@ import {faBackward} from "@fortawesome/free-solid-svg-icons";
 import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import {useRoom} from "@/context/RoomContext";
+import {usePathname} from 'next/navigation';
 
 
 export interface DanmuMessageResponse {
@@ -40,8 +41,11 @@ export interface DanmuMessage {
 }
 
 export const ApplicationLayout = ({children}: { children: React.ReactNode }) => {
+    const currentPath = usePathname();
     const {theme, toggleTheme} = useTheme();
     const {id, roomInfo, toggleRoom} = useRoom();
+
+    console.log(currentPath)
 
     const handleClick = (id: number) => {
         toggleRoom(id)
@@ -109,6 +113,12 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                             <div>
                                 {id != 0 ? <SidebarSection>
                                     <SidebarItem onClick={() => handleClick(0)} className={"text-base font-medium"}>
+                                        <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
+                                        <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
+                                    </SidebarItem>
+                                </SidebarSection> : null}
+                                {currentPath == "/checker" ? <SidebarSection>
+                                    <SidebarItem href={"/"} className={"text-base font-medium"}>
                                         <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
                                         <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
                                     </SidebarItem>
