@@ -46,7 +46,7 @@ export function CheckboxField({
 const base = [
   // Basic layout
   'relative isolate flex size-[1.125rem] items-center justify-center rounded-[0.3125rem] sm:size-4',
-  // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
+  // Background color + shadow applied to inset pseudo checker, so shadow blends with border in light mode
   'before:absolute before:inset-0 before:-z-10 before:rounded-[calc(0.3125rem-1px)] before:bg-white before:shadow',
   // Background color when checked
   'before:group-data-[checked]:bg-[--checkbox-checked-bg]',

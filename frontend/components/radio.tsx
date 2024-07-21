@@ -45,7 +45,7 @@ export function RadioField({ className, ...props }: { className?: string } & Omi
 const base = [
   // Basic layout
   'relative isolate flex size-[1.1875rem] shrink-0 rounded-full sm:size-[1.0625rem]',
-  // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
+  // Background color + shadow applied to inset pseudo checker, so shadow blends with border in light mode
   'before:absolute before:inset-0 before:-z-10 before:rounded-full before:bg-white before:shadow',
   // Background color when checked
   'before:group-data-[checked]:bg-[--radio-checked-bg]',

@@ -15,7 +15,7 @@ import {SidebarLayout} from '@/components/sidebar-layout'
 import {Heading, Subheading} from "@/components/heading"
 import {TextLink} from "@/components/text"
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faBilibili} from "@fortawesome/free-brands-svg-icons";
+import {faBilibili, faSearchengin} from "@fortawesome/free-brands-svg-icons";
 import React from "react";
 import {faBackward} from "@fortawesome/free-solid-svg-icons";
 import {useTheme} from '@/context/ThemeContext';
@@ -72,9 +72,10 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                             </div>
                         </SidebarHeader>
                         <SidebarBody className={"justify-between"}>
+                            <div>
                             <Dropdown>
                                 <DropdownButton as={SidebarItem} className="lg:mb-2.5">
-                                    <SidebarLabel className={"flex grow gap-2 items-center text-base font-medium"}>
+                                    <SidebarLabel className={"flex grow gap-2 items-center text-lg font-medium hover:cursor-pointer"}>
                                         <FontAwesomeIcon icon={faBilibili} size={"2xs"} className={"size-8"}/>
                                         总监的同事们
                                     </SidebarLabel>
@@ -98,6 +99,13 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                                     </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
+                                    <SidebarSection className={"mt-3"}>
+                                        <SidebarItem href={"/checker"} className={"flex grow gap-2 items-center font-medium"}>
+                                            <FontAwesomeIcon icon={faSearchengin} size={"2xs"} className={"size-8"} />
+                                            <SidebarLabel className={"ml-4 text-lg"}>查成分</SidebarLabel>
+                                        </SidebarItem>
+                                    </SidebarSection>
+                            </div>
                             <div>
                                 {id != 0 ? <SidebarSection>
                                     <SidebarItem onClick={() => handleClick(0)} className={"text-base font-medium"}>

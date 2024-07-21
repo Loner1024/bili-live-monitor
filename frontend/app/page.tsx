@@ -4,7 +4,7 @@ import {QueryClient, QueryClientProvider, useQuery, useQueryClient} from "@tanst
 import {Heading} from "@/components/heading";
 import {Stat} from "@/components/stat";
 import {Input, InputGroup} from "@/components/input";
-import {format, fromUnixTime, parse} from "date-fns";
+import {parse} from "date-fns";
 import {ArrowPathIcon, MagnifyingGlassIcon} from "@heroicons/react/24/solid";
 import {Select} from "@/components/select";
 import {Button} from "@/components/button";
@@ -12,6 +12,8 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from "@/components/pagination";
 import {DanmuMessage, DanmuMessageResponse} from "@/app/application-layout";
 import {useRoom} from "@/context/RoomContext";
+import {Loading} from "@/components/loading";
+import {getFormatTime, getTimestampSecs} from "@/utils/utils";
 
 const queryClient = new QueryClient();
 
@@ -19,12 +21,12 @@ export default function Home() {
     const {roomInfo} = useRoom();
     return (
         <QueryClientProvider client={queryClient}>
-                <DataTable roomId={roomInfo.room_id.toString()}/>
+            <DataTable roomId={roomInfo.room_id.toString()}/>
         </QueryClientProvider>
+
     );
 }
 
-const baseURL = "https://zongjian.uniix.dev"
 const curDate = new Date();
 
 const fetcher = async (params: {
@@ -44,7 +46,7 @@ const fetcher = async (params: {
     queryParameters.message != "" ? query.set("message", queryParameters.message || '') : null;
     queryParameters.message_type != "" ? query.set("message_type", queryParameters.message_type || 'danmu') : null;
 
-    const response = await fetch(`${baseURL}/api/${room_id}?${query}`);
+    const response = await fetch(`${process.env.baseUrl}/api/${room_id}?${query}`);
 
     if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -222,20 +224,3 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
     )
 }
 
-const Loading = () => {
-    return (
-        <div className={"flex justify-center items-center h-96 w-full"}>
-            <div className={"flex justify-center items-center size-1/12"}>
-                <ArrowPathIcon className={"animate-spin text-gray-500"}/>
-            </div>
-        </div>
-    )
-}
-
-function getFormatTime(timestamp: number) {
-    return format(fromUnixTime(timestamp), 'yyyy-MM-dd HH:mm:ss');
-}
-
-function getTimestampSecs(date: { getTime: () => number }) {
-    return parseInt(String(date.getTime() / 1000))
-}

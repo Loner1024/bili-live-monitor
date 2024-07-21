@@ -4,6 +4,7 @@ import {ThemeProvider} from '@/context/ThemeContext';
 import {RoomProvider} from "@/context/RoomContext";
 import {ApplicationLayout} from "@/app/application-layout";
 import "./globals.css";
+import React from "react";
 
 const inter = Inter({subsets: ["latin"]});
 
