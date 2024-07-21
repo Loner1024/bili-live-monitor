@@ -14,6 +14,7 @@ import {streamers} from "@/data/streamers"
 
 interface QueryParam {
     uid: number,
+    timestamp: number,
 }
 
 interface QueryResponseData {
@@ -42,14 +43,16 @@ const DataTable = () => {
     const [timestamp, setTimestamp] = useState(getTimestampSecs(curDate));
 
     const [queryParam, setQueryParam] = useState<QueryParam>({
-        uid
+        uid,
+        timestamp,
     })
 
     const {data: response, isLoading} = useQuery<QueryResponseData, Error>(
         {
-            queryKey: [`data`, uid],
+            queryKey: [`data`, queryParam.uid],
             queryFn: () => fetcher({
-                uid: uid.toString(),
+                uid: queryParam.uid,
+                timestamp: queryParam.timestamp,
             })
         },
         queryClient
@@ -57,7 +60,7 @@ const DataTable = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setQueryParam({uid})
+        setQueryParam({uid, timestamp})
     };
 
     return (
@@ -73,6 +76,7 @@ const DataTable = () => {
                         <InputGroup>
                             <MagnifyingGlassIcon/>
                             <Input
+                                onChange={(e) => setUid(parseInt(e.target.value))}
                                 name="search"
                                 placeholder="输入 uid 查询" aria-label="Search" />
                         </InputGroup>
@@ -131,13 +135,15 @@ const CheckerPage = () => {
 };
 
 const fetcher = async (params: {
-    uid: string,
+    uid: number,
+    timestamp: number,
 }): Promise<QueryResponseData> => {
     const query = new URLSearchParams({
-        uid: params.uid,
+        uid: params.uid.toString(),
+        timestamp: params.timestamp.toString(),
     });
 
-    const response = await fetch(`${process.env.baseUrl}/api/checker?${query}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/checker?${query}`);
 
     if (!response.ok) {
         throw new Error('Network response was not ok');

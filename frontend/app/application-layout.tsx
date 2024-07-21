@@ -45,8 +45,6 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
     const {theme, toggleTheme} = useTheme();
     const {id, roomInfo, toggleRoom} = useRoom();
 
-    console.log(currentPath)
-
     const handleClick = (id: number) => {
         toggleRoom(id)
     };
