@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: statistics-today
+spec:
+  schedule: "*/5 * * * *" #	Run every minute
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: statistics-today
+              image: busybox:latest
+              imagePullPolicy: IfNotPresent
+              args:
+                - today
+          restartPolicy: OnFailure

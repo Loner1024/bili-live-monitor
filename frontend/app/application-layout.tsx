@@ -23,12 +23,31 @@ import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import {useRoom} from "@/context/RoomContext";
 import {usePathname} from 'next/navigation';
 
+export interface StatisticsResult {
+    danmu_total: number      // 总弹幕数量
+    danmu_people: number     // 总弹幕人数
+    super_chat_total: number // 总SC数量
+    super_chat_worth: number // 总SC人数
+}
+
+export interface StatisticsData {
+    today: StatisticsResult
+    yesterday: StatisticsResult
+}
+
+export interface StatisticsResponse {
+    code: number
+    message: string
+    count: number
+    data: StatisticsData
+}
+
 
 export interface DanmuMessageResponse {
     code: number
     message: string
     count: number
-    data: DanmuMessage[],
+    data: DanmuMessage[]
 }
 
 export interface DanmuMessage {
@@ -50,34 +69,35 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
     };
 
     return (
-            <SidebarLayout
-                navbar={
-                    <Navbar>
-                        <NavbarSpacer/>
-                        <NavbarSection>
-                        </NavbarSection>
-                    </Navbar>
-                }
-                sidebar={
-                    <Sidebar>
-                        <SidebarHeader>
-                            <div className={"flex flex-col gap-1 mt-9"}>
-                                <Avatar
-                                    src={roomInfo.avatar}/>
-                                <Heading>{roomInfo.nickname}</Heading>
-                                <TextLink
-                                    href={roomInfo.bilibili_link}
-                                    target={"_blank"}
-                                    className={"no-underline hover:underline"}
-                                >@{roomInfo.username}</TextLink>
-                                <Subheading>{roomInfo.description}</Subheading>
-                            </div>
-                        </SidebarHeader>
-                        <SidebarBody className={"justify-between"}>
-                            <div>
+        <SidebarLayout
+            navbar={
+                <Navbar>
+                    <NavbarSpacer/>
+                    <NavbarSection>
+                    </NavbarSection>
+                </Navbar>
+            }
+            sidebar={
+                <Sidebar>
+                    <SidebarHeader>
+                        <div className={"flex flex-col gap-1 mt-9"}>
+                            <Avatar
+                                src={roomInfo.avatar}/>
+                            <Heading>{roomInfo.nickname}</Heading>
+                            <TextLink
+                                href={roomInfo.bilibili_link}
+                                target={"_blank"}
+                                className={"no-underline hover:underline"}
+                            >@{roomInfo.username}</TextLink>
+                            <Subheading>{roomInfo.description}</Subheading>
+                        </div>
+                    </SidebarHeader>
+                    <SidebarBody className={"justify-between"}>
+                        <div>
                             <Dropdown>
                                 <DropdownButton as={SidebarItem} className="lg:mb-2.5">
-                                    <SidebarLabel className={"flex grow gap-2 items-center text-lg font-medium hover:cursor-pointer"}>
+                                    <SidebarLabel
+                                        className={"flex grow gap-2 items-center text-lg font-medium hover:cursor-pointer"}>
                                         <FontAwesomeIcon icon={faBilibili} size={"2xs"} className={"size-8"}/>
                                         总监的同事们
                                     </SidebarLabel>
@@ -101,40 +121,40 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                                     </DropdownItem>
                                 </DropdownMenu>
                             </Dropdown>
-                                    <SidebarSection className={"mt-3"}>
-                                        <SidebarItem href={"/checker"} className={"flex grow gap-2 items-center font-medium"}>
-                                            <FontAwesomeIcon icon={faSearchengin} size={"2xs"} className={"size-8"} />
-                                            <SidebarLabel className={"ml-4 text-lg"}>查成分</SidebarLabel>
-                                        </SidebarItem>
-                                    </SidebarSection>
-                            </div>
-                            <div>
-                                {id != 0 ? <SidebarSection>
-                                    <SidebarItem onClick={() => handleClick(0)} className={"text-base font-medium"}>
-                                        <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
-                                        <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
-                                    </SidebarItem>
-                                </SidebarSection> : null}
-                                {currentPath == "/checker" ? <SidebarSection>
-                                    <SidebarItem href={"/"} className={"text-base font-medium"}>
-                                        <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
-                                        <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
-                                    </SidebarItem>
-                                </SidebarSection> : null}
-                            </div>
-                        </SidebarBody>
-                        <SidebarFooter>
-                            <div className={"flex cursor-pointer size-5"}
-                                 onClick={toggleTheme}>
-                                {theme == "dark" ? <MoonIcon color={"white"}/> : <SunIcon color={"black"}/>}
-                            </div>
-                        </SidebarFooter>
-                    </Sidebar>
-                }
-            >
-                {/* The page content */}
-                {children}
-            </SidebarLayout>
+                            <SidebarSection className={"mt-3"}>
+                                <SidebarItem href={"/checker"} className={"flex grow gap-2 items-center font-medium"}>
+                                    <FontAwesomeIcon icon={faSearchengin} size={"2xs"} className={"size-8"}/>
+                                    <SidebarLabel className={"ml-4 text-lg"}>查成分</SidebarLabel>
+                                </SidebarItem>
+                            </SidebarSection>
+                        </div>
+                        <div>
+                            {id != 0 ? <SidebarSection>
+                                <SidebarItem onClick={() => handleClick(0)} className={"text-base font-medium"}>
+                                    <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
+                                    <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
+                                </SidebarItem>
+                            </SidebarSection> : null}
+                            {currentPath == "/checker" ? <SidebarSection>
+                                <SidebarItem href={"/"} className={"text-base font-medium"}>
+                                    <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
+                                    <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
+                                </SidebarItem>
+                            </SidebarSection> : null}
+                        </div>
+                    </SidebarBody>
+                    <SidebarFooter>
+                        <div className={"flex cursor-pointer size-5"}
+                             onClick={toggleTheme}>
+                            {theme == "dark" ? <MoonIcon color={"white"}/> : <SunIcon color={"black"}/>}
+                        </div>
+                    </SidebarFooter>
+                </Sidebar>
+            }
+        >
+            {/* The page content */}
+            {children}
+        </SidebarLayout>
     );
 }
 

@@ -10,7 +10,7 @@ import {Select} from "@/components/select";
 import {Button} from "@/components/button";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/table";
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from "@/components/pagination";
-import {DanmuMessage, DanmuMessageResponse} from "@/app/application-layout";
+import {DanmuMessage, DanmuMessageResponse, StatisticsResponse, StatisticsResult} from "@/app/application-layout";
 import {useRoom} from "@/context/RoomContext";
 import {Loading} from "@/components/loading";
 import {getFormatTime, getTimestampSecs} from "@/utils/utils";
@@ -55,6 +55,24 @@ const fetcher = async (params: {
     return response.json();
 };
 
+const statisticsFetcher = async (params: {
+    room_id: string,
+    timestamp: number,
+}): Promise<StatisticsResponse> => {
+    const query = new URLSearchParams({
+        timestamp: params.timestamp.toString(),
+        room_id: params.room_id
+    });
+
+    const response = await fetch(`${process.env.API_URL}/api/statistics?${query}`);
+
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+
+    return response.json();
+};
+
 
 interface DataFetcherProps {
     roomId: string;
@@ -66,6 +84,13 @@ interface QueryParam {
     message_type: string
 }
 
+interface StatisticsChange {
+    danmu_total_change: number,
+    danmu_people_change: number,
+    super_chat_total_change: number,
+    super_chat_worth_change: number,
+}
+
 const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('');
@@ -73,8 +98,6 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
     const [limit] = useState(50);
     const [offset, setOffset] = useState(0);
 
-
-    const queryClient = useQueryClient();
 
     const [queryParam, setQueryParam] = useState<QueryParam>({
         timestamp: getTimestampSecs(curDate),
@@ -89,6 +112,33 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
         setTimestamp(getTimestampSecs(curDate))
         setQueryParam(prev => ({...prev, message: "", message_type: "danmu", timestamp: getTimestampSecs(curDate)}))
     }, [roomId]);
+
+    // const statisticsQueryClient = useQueryClient();
+    const queryClient = useQueryClient();
+    const {data: statisticsData, isLoading: statisticsIsLoading} = useQuery<StatisticsResponse, Error>(
+        {
+            queryKey: [`statistics`, roomId],
+            queryFn: () => statisticsFetcher({
+                room_id: roomId,
+                timestamp: queryParam.timestamp,
+            })
+        },
+        queryClient
+    );
+    const today = statisticsData?.data.today == undefined ? {
+        danmu_total: 0,
+        danmu_people: 0,
+        super_chat_total: 0,
+        super_chat_worth: 0
+    } : statisticsData?.data.today;
+    const yesterday = statisticsData?.data.yesterday == undefined ? {
+        danmu_total: 0,
+        danmu_people: 0,
+        super_chat_total: 0,
+        super_chat_worth: 0
+    } : statisticsData?.data.yesterday;
+    const statisticsChange = calcChange(today, yesterday);
+
 
     const {data: danmuData, isLoading} = useQuery<DanmuMessageResponse, Error>(
         {
@@ -135,10 +185,16 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
             <div>
                 <Heading>Today（统计数据是演示，暂时还没做完）</Heading>
                 <div className="mt-4 grid gap-8 sm:grid-cols-2 xl:grid-cols-4 dark:text-white">
-                    <Stat title="弹幕总数" value="$2.6M" change="+4.5%"/>
-                    <Stat title="弹幕人数" value="$455" change="-0.5%"/>
-                    <Stat title="SC总数" value="5,888" change="+4.5%"/>
-                    <Stat title="SC总价值" value="823,067" change="+21.2%"/>
+                    <Stat title="弹幕总数" value={today?.danmu_total == undefined ? "" : today.danmu_total.toString()}
+                          change={get_change_str(statisticsChange.danmu_total_change)}/>
+                    <Stat title="弹幕人数" value={today?.danmu_people == undefined ? "" : today.danmu_people.toString()}
+                          change={get_change_str(statisticsChange.danmu_people_change)}/>
+                    <Stat title="SC总数"
+                          value={today?.super_chat_total == undefined ? "" : today.super_chat_total.toString()}
+                          change={get_change_str(statisticsChange.super_chat_total_change)}/>
+                    <Stat title="SC总价值"
+                          value={today?.super_chat_worth == undefined ? "" : today.super_chat_worth.toString()}
+                          change={get_change_str(statisticsChange.super_chat_worth_change)}/>
                 </div>
             </div>
             <div className={"mb-8"}>
@@ -224,5 +280,26 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
             </div>
         </div>
     )
+}
+
+function calcChange(today: StatisticsResult, yesterday: StatisticsResult): StatisticsChange {
+    const danmu_total_change = (today.danmu_total - yesterday.danmu_total) / yesterday.danmu_total * 100;
+    const danmu_people_change = (today.danmu_people - yesterday.danmu_people) / yesterday.danmu_people * 100;
+    const super_chat_total_change = (today.super_chat_total - yesterday.super_chat_total) / yesterday.super_chat_total * 100;
+    const super_chat_worth_change = (today.super_chat_worth - yesterday.super_chat_worth) / yesterday.super_chat_worth * 100;
+    return {
+        danmu_total_change,
+        danmu_people_change,
+        super_chat_total_change,
+        super_chat_worth_change
+    }
+}
+
+function get_change_str(change: number): string {
+    if (change >= 0) {
+        return `+${change.toFixed(2)}%`;
+    } else {
+        return `${change.toFixed(2)}%`;
+    }
 }
 
