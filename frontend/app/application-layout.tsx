@@ -22,6 +22,7 @@ import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import {useRoom} from "@/context/RoomContext";
 import {usePathname} from 'next/navigation';
+import { useRouter } from 'next/navigation'
 
 export interface StatisticsResult {
     danmu_total: number      // 总弹幕数量
@@ -63,8 +64,12 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
     const currentPath = usePathname();
     const {theme, toggleTheme} = useTheme();
     const {id, roomInfo, toggleRoom} = useRoom();
+    const router = useRouter();
 
     const handleClick = (id: number) => {
+        if (currentPath == "/checker") {
+            router.push("/")
+        }
         toggleRoom(id)
     };
 
