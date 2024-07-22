@@ -183,6 +183,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
                 <Table hidden={isLoading}>
                     <TableHead>
                         <TableRow>
+                            <TableHeader>uid</TableHeader>
                             <TableHeader>昵称</TableHeader>
                             <TableHeader>弹幕内容</TableHeader>
                             <TableHeader>类型</TableHeader>
@@ -193,6 +194,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
                     <TableBody>
                         {danmuData?.data?.map((danmu: DanmuMessage, index: number) => {
                             return <TableRow key={index}>
+                                <TableCell>{danmu.uid}</TableCell>
                                 <TableCell className="font-medium">{danmu.username}</TableCell>
                                 <TableCell>{danmu.message}</TableCell>
                                 <TableCell
