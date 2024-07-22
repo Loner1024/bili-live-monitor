@@ -3,7 +3,7 @@ use duckdb::{params, Appender, Connection};
 use log::{debug, info};
 use parse::{DanmuMessage, SuperChatMessage};
 use std::sync::atomic;
-use utils::utils::{get_table_name, init_oss_with_conn, MessageType, OssConfig};
+use utils::utils::{get_table_name, MessageType, OssConfig};
 
 pub struct Storage<'a> {
     conn: &'a Connection,
@@ -17,13 +17,7 @@ pub struct Storage<'a> {
 impl<'a> Storage<'a> {
     pub fn new(conn: &'a Connection, room_id: i64, timestamp: i64) -> Result<Self> {
         let oss_config = OssConfig::new()?;
-        init_oss_with_conn(
-            conn,
-            oss_config.endpoint.as_str(),
-            oss_config.region.as_str(),
-            oss_config.key.as_str(),
-            oss_config.secret.as_str(),
-        )?;
+        oss_config.clone().init_oss_with_conn(conn)?;
         Self::init_table(conn, &oss_config.bucket, room_id, timestamp)?;
         Ok(Self {
             conn,

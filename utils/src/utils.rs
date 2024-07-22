@@ -106,6 +106,7 @@ fn get_local_midnight(timestamp: i64) -> Result<i64> {
     Ok(utc.timestamp())
 }
 
+#[derive(Clone)]
 pub struct OssConfig {
     pub endpoint: String,
     pub region: String,
@@ -114,28 +115,10 @@ pub struct OssConfig {
     pub bucket: String,
 }
 
+impl OssConfig {}
+
 pub fn init_oss_with_pool(
     conn: &PooledConnection<DuckdbConnectionManager>,
-    endpoint: &str,
-    region: &str,
-    key: &str,
-    secret: &str,
-) -> Result<()> {
-    let stmt = format!(
-        "CREATE SECRET (
-                TYPE S3,
-                Endpoint '{endpoint}',
-                KEY_ID '{key}',
-                SECRET '{secret}',
-                REGION '{region}'
-            );",
-    );
-    conn.execute(&stmt, [])?;
-    Ok(())
-}
-
-pub fn init_oss_with_conn(
-    conn: &Connection,
     endpoint: &str,
     region: &str,
     key: &str,
@@ -168,6 +151,22 @@ impl OssConfig {
             secret,
             bucket,
         })
+    }
+
+    pub fn init_oss_with_conn(self, conn: &Connection) -> Result<()> {
+        let stmt = format!(
+            "CREATE SECRET (
+                TYPE S3,
+                Endpoint '{}',
+                KEY_ID '{}',
+                SECRET '{}',
+                REGION '{}'
+            );",
+            self.endpoint, self.key, self.secret, self.region,
+        );
+        conn.execute(&stmt, [])?;
+
+        Ok(())
     }
 }
 
