@@ -183,7 +183,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
     return (
         <div>
             <div>
-                <Heading>Today（统计数据是演示，暂时还没做完）</Heading>
+                <Heading>Today</Heading>
                 <div className="mt-4 grid gap-8 sm:grid-cols-2 xl:grid-cols-4 dark:text-white">
                     <Stat title="弹幕总数" value={today?.danmu_total == undefined ? "" : today.danmu_total.toString()}
                           change={get_change_str(statisticsChange.danmu_total_change)}/>
