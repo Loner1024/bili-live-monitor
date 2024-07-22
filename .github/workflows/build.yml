@@ -152,7 +152,7 @@ jobs:
         run: rustup toolchain install stable
       - uses: Swatinem/rust-cache@v2
       - name: Build rust
-        run: cargo build -p service --release
+        run: cargo build -p statistics --release
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
