@@ -10,7 +10,7 @@ use axum::Json;
 use chrono::Duration;
 use queryer::Queryer;
 use std::sync::Arc;
-use tracing::{info, debug};
+use tracing::{debug, info};
 use utils::utils::{get_rooms, MessageType, Pagination};
 
 pub async fn query(
