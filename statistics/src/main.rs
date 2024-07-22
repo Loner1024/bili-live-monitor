@@ -2,45 +2,8 @@ use anyhow::{anyhow, Result};
 use chrono::{Duration, Local};
 use duckdb::{params, Connection};
 use log::{debug, info};
+use model::statistics::{StatisticsResult, StatisticsScope};
 use utils::utils::{get_local_midnight, get_rooms, get_table_name, MessageType, OssConfig};
-
-#[derive(Copy, Clone)]
-enum StatisticsScope {
-    Day,
-    Week,
-}
-
-impl StatisticsScope {
-    fn remote_table_name(self, bucket: &str, room_id: i64) -> String {
-        match self {
-            StatisticsScope::Day => {
-                format!("s3://{}/statistics/{}/{}.parquet", bucket, room_id, "day")
-            }
-            StatisticsScope::Week => {
-                format!("s3://{}/statistics/{}/{}.parquet", bucket, room_id, "week")
-            }
-        }
-    }
-
-    fn local_table_name(&self, room_id: i64) -> String {
-        match self {
-            StatisticsScope::Day => {
-                format!("{}_{}", "day", room_id)
-            }
-            StatisticsScope::Week => {
-                format!("{}_{}", "week", room_id)
-            }
-        }
-    }
-}
-
-#[derive(Debug)]
-struct StatisticsResult {
-    danmu_total: u64,      // 总弹幕数量
-    danmu_people: u64,     // 总弹幕人数
-    super_chat_total: u64, // 总SC数量
-    super_chat_worth: u64, // 总SC人数
-}
 
 fn main() -> Result<()> {
     pretty_env_logger::init_timed();

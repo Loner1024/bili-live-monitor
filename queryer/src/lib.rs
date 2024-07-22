@@ -1,8 +1,11 @@
 use anyhow::Result;
 use duckdb::DuckdbConnectionManager;
+use model::statistics;
 use parse::{DanmuMessage, Message, SuperChatMessage};
 use r2d2::Pool;
-use utils::utils::{get_table_name, init_oss_with_pool, MessageType, OssConfig, Pagination};
+use utils::utils::{
+    get_local_midnight, get_table_name, init_oss_with_pool, MessageType, OssConfig, Pagination,
+};
 
 #[derive(Clone)]
 pub struct Query {
@@ -158,6 +161,29 @@ impl Query {
             "SELECT {} FROM '{}' {} {} {}",
             col, table, where_clause, order_clause, pagination_clause
         ))
+    }
+
+    pub fn query_statistics_data(
+        &self,
+        room_id: i64,
+        timestamp: i64,
+    ) -> Result<statistics::StatisticsResult> {
+        let timestamp = get_local_midnight(timestamp)?;
+        let table = statistics::StatisticsScope::Day.remote_table_name(&self.bucket, room_id);
+        let conn = self.pool.get()?;
+        let result = conn.query_row(
+            &format!("SELECT * FROM '{}' WHERE timestamp = ?", table),
+            [timestamp],
+            |row| {
+                Ok(statistics::StatisticsResult {
+                    danmu_total: row.get("danmu_total")?,
+                    danmu_people: row.get("danmu_people")?,
+                    super_chat_total: row.get("super_chat_total")?,
+                    super_chat_worth: row.get("super_chat_worth")?,
+                })
+            },
+        )?;
+        Ok(result)
     }
 }
 
