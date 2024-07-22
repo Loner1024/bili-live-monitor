@@ -88,7 +88,7 @@ pub fn is_new_day(old_timestamp: i64, new_timestamp: i64) -> Result<bool> {
     Ok(new_day > old_day)
 }
 
-fn get_local_midnight(timestamp: i64) -> Result<i64> {
+pub fn get_local_midnight(timestamp: i64) -> Result<i64> {
     let hour = 3600;
     let naive = DateTime::from_timestamp(timestamp, 0)
         .ok_or(anyhow!("Invalid timestamp"))?
@@ -139,11 +139,11 @@ pub fn init_oss_with_pool(
 
 impl OssConfig {
     pub fn new() -> Result<Self> {
-        let endpoint = env::var("OSS_ENDPOINT")?;
-        let region = env::var("OSS_REGION")?;
-        let key = env::var("OSS_KEY")?;
-        let secret = env::var("OSS_SECRET")?;
-        let bucket = env::var("OSS_BUCKET")?;
+        let endpoint = env::var("OSS_ENDPOINT").map_err(|_| anyhow!("OSS_ENDPOINT must be set"))?;
+        let region = env::var("OSS_REGION").map_err(|_| anyhow!("OSS_REGION must be set"))?;
+        let key = env::var("OSS_KEY").map_err(|_| anyhow!("OSS_KEY must be set"))?;
+        let secret = env::var("OSS_SECRET").map_err(|_| anyhow!("OSS_SECRET must be set"))?;
+        let bucket = env::var("OSS_BUCKET").map_err(|_| anyhow!("OSS_BUCKET must be set"))?;
         Ok(Self {
             endpoint,
             region,
