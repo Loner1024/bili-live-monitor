@@ -1,20 +1,22 @@
 use crate::error::AppError;
 use crate::model::{
     message_to_checker_response_date, message_vec_to_query_response_data_vec, CheckerRequest,
-    CheckerResponse, QueryRequest, QueryResponse,
+    CheckerResponse, QueryRequest, QueryResponse, QueryStatisticsData, QueryStatisticsRequest,
+    QueryStatisticsResponse,
 };
-use axum::extract;
 use axum::extract::rejection::{PathRejection, QueryRejection};
+use axum::extract::{Path, Query, State};
 use axum::Json;
-use queryer::Query;
+use chrono::Duration;
+use queryer::Queryer;
 use std::sync::Arc;
-use tracing::info;
+use tracing::{info, debug};
 use utils::utils::{get_rooms, MessageType, Pagination};
 
 pub async fn query(
-    extract::State(storage): extract::State<Arc<Query>>,
-    room_id: Result<extract::Path<i64>, PathRejection>,
-    req: Result<extract::Query<QueryRequest>, QueryRejection>,
+    State(storage): State<Arc<Queryer>>,
+    room_id: Result<Path<i64>, PathRejection>,
+    req: Result<Query<QueryRequest>, QueryRejection>,
 ) -> Result<Json<QueryResponse>, AppError> {
     let room_id = match room_id {
         Ok(id) => id.0,
@@ -76,8 +78,8 @@ pub async fn query(
 }
 
 pub async fn checker(
-    extract::State(storage): extract::State<Arc<Query>>,
-    req: Result<extract::Query<CheckerRequest>, QueryRejection>,
+    State(storage): State<Arc<Queryer>>,
+    req: Result<Query<CheckerRequest>, QueryRejection>,
 ) -> Result<Json<CheckerResponse>, AppError> {
     let req = extract_req(req)?;
     let mut result = vec![];
@@ -102,7 +104,36 @@ pub async fn checker(
     }))
 }
 
-fn extract_req<T>(req: Result<extract::Query<T>, QueryRejection>) -> Result<T, AppError> {
+pub async fn query_statistics(
+    State(storage): State<Arc<Queryer>>,
+    req: Result<Query<QueryStatisticsRequest>, QueryRejection>,
+) -> Result<Json<QueryStatisticsResponse>, AppError> {
+    let req = extract_req(req)?;
+    let today = match storage.query_statistics_data(req.room_id, req.timestamp) {
+        Ok(data) => data,
+        Err(e) => {
+            info!("query from db error: {}", e);
+            return Err(AppError::QueryError);
+        }
+    };
+    let yesterday = match storage
+        .query_statistics_data(req.room_id, req.timestamp - Duration::days(1).num_seconds())
+    {
+        Ok(data) => data,
+        Err(e) => {
+            info!("query from db error: {}", e);
+            return Err(AppError::QueryError);
+        }
+    };
+    debug!("today: {:?}, yesterday: {:?}", today, yesterday);
+    Ok(Json(QueryStatisticsResponse {
+        code: 0,
+        message: "success".to_string(),
+        data: QueryStatisticsData { today, yesterday },
+    }))
+}
+
+fn extract_req<T>(req: Result<Query<T>, QueryRejection>) -> Result<T, AppError> {
     match req {
         Ok(req) => Ok(req.0),
         Err(e) => {

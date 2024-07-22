@@ -8,12 +8,12 @@ use utils::utils::{
 };
 
 #[derive(Clone)]
-pub struct Query {
+pub struct Queryer {
     pool: Pool<DuckdbConnectionManager>,
     bucket: String,
 }
 
-impl Query {
+impl Queryer {
     pub fn new(pool: Pool<DuckdbConnectionManager>) -> Result<Self> {
         let oss_config = OssConfig::new()?;
         init_oss_with_pool(
@@ -199,7 +199,7 @@ mod tests {
         dotenv().ok().unwrap();
         let manager = DuckdbConnectionManager::memory().unwrap();
         let pool = Pool::new(manager).unwrap();
-        let query = Query::new(pool).unwrap();
+        let query = Queryer::new(pool).unwrap();
         let room_id = 21533102;
         let timestamp = 1721153475;
         let result = query
@@ -228,7 +228,7 @@ mod tests {
         dotenv().ok().unwrap();
         let manager = DuckdbConnectionManager::memory().unwrap();
         let pool = Pool::new(manager).unwrap();
-        let query = Query::new(pool).unwrap();
+        let query = Queryer::new(pool).unwrap();
         let room_id = 22747736;
         let timestamp = 1720973747;
         let result = query

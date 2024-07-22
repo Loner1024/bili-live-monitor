@@ -3,7 +3,7 @@ use axum::http::Method;
 use axum::routing::get;
 use axum::Router;
 use duckdb::DuckdbConnectionManager;
-use queryer::Query;
+use queryer::Queryer;
 use r2d2::Pool;
 use std::sync::Arc;
 use tower::ServiceBuilder;
@@ -30,7 +30,7 @@ async fn main() -> Result<()> {
         .init();
     let manager = DuckdbConnectionManager::memory()?;
     let pool = Pool::new(manager)?;
-    let queryer = Arc::new(Query::new(pool)?);
+    let queryer = Arc::new(Queryer::new(pool)?);
 
     let cors = CorsLayer::new()
         // allow `GET` and `POST` when accessing the resource
@@ -41,6 +41,7 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/api/:room_id", get(api::query))
         .route("/api/checker", get(api::checker))
+        .route("/api/statistics", get(api::query_statistics))
         .layer(cors)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(queryer);

@@ -1367,6 +1367,9 @@ dependencies = [
 [[package]]
 name = "model"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "native-tls"
@@ -2164,8 +2167,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "chrono",
  "dotenv",
  "duckdb",
+ "model",
  "parse",
  "queryer",
  "r2d2",

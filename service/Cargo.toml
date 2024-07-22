@@ -15,8 +15,10 @@ serde_json = "1.0.120"
 utils = { path = "../utils" }
 r2d2 = "0.8.10"
 dotenv = "0.15.0"
+chrono = "0.4.38"
 tracing = "0.1.40"
 tracing-subscriber = { version =  "0.3.18", features = ["env-filter"] }
 tower = "0.4.13"
 tower-http = { version = "0.5.2", features = ["trace", "cors"] }
 parse = { path = "../parse" }
+model= { path = "../model"}

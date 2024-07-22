@@ -1,4 +1,5 @@
 use crate::error::AppError;
+use model::statistics;
 use parse::Message;
 use serde::{Deserialize, Serialize};
 use utils::utils::MessageType;
@@ -123,4 +124,23 @@ pub fn message_to_checker_response_date(
         }),
         _ => Err(AppError::QueryError),
     }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct QueryStatisticsRequest {
+    pub timestamp: i64,
+    pub room_id: i64,
+}
+
+#[derive(Serialize, Debug)]
+pub struct QueryStatisticsResponse {
+    pub code: isize,
+    pub message: String,
+    pub data: QueryStatisticsData,
+}
+
+#[derive(Serialize, Debug)]
+pub struct QueryStatisticsData {
+    pub today: statistics::StatisticsResult,
+    pub yesterday: statistics::StatisticsResult,
 }
