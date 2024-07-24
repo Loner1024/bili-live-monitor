@@ -24,23 +24,22 @@ import {useRoom} from "@/context/RoomContext";
 import {usePathname} from 'next/navigation';
 import { useRouter } from 'next/navigation'
 
-export interface StatisticsResult {
-    danmu_total: number      // 总弹幕数量
-    danmu_people: number     // 总弹幕人数
-    super_chat_total: number // 总SC数量
-    super_chat_worth: number // 总SC人数
+export class StatisticsResult {
+    danmu_total: number = 0      // 总弹幕数量
+    danmu_people: number = 0     // 总弹幕人数
+    super_chat_total: number = 0 // 总SC数量
+    super_chat_worth: number = 0 // 总SC人数
 }
 
-export interface StatisticsData {
-    today: StatisticsResult
-    yesterday: StatisticsResult
+export class StatisticsData {
+    today: StatisticsResult = new StatisticsResult()
+    yesterday: StatisticsResult = new StatisticsResult()
 }
 
-export interface StatisticsResponse {
-    code: number
-    message: string
-    count: number
-    data: StatisticsData
+export class StatisticsResponse {
+    code: number = 0
+    message: string = "success"
+    data: StatisticsData = new StatisticsData()
 }
 
 

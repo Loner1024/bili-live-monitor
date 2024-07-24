@@ -100,7 +100,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
 
 
     const [queryParam, setQueryParam] = useState<QueryParam>({
-        timestamp: getTimestampSecs(curDate),
+        timestamp,
         message: "",
         message_type: ""
     })
@@ -115,7 +115,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
 
     // const statisticsQueryClient = useQueryClient();
     const queryClient = useQueryClient();
-    const {data: statisticsData, isLoading: statisticsIsLoading} = useQuery<StatisticsResponse, Error>(
+    const {data: statisticsData,error, isLoading: statisticsIsLoading} = useQuery<StatisticsResponse, Error>(
         {
             queryKey: [`statistics`, roomId],
             queryFn: () => statisticsFetcher({
@@ -125,20 +125,10 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
         },
         queryClient
     );
-    const today = statisticsData?.data.today == undefined ? {
-        danmu_total: 0,
-        danmu_people: 0,
-        super_chat_total: 0,
-        super_chat_worth: 0
-    } : statisticsData?.data.today;
-    const yesterday = statisticsData?.data.yesterday == undefined ? {
-        danmu_total: 0,
-        danmu_people: 0,
-        super_chat_total: 0,
-        super_chat_worth: 0
-    } : statisticsData?.data.yesterday;
-    const statisticsChange = calcChange(today, yesterday);
+    let today = statisticsData?.data.today || new StatisticsResult()
+    let yesterday = statisticsData?.data.yesterday || new StatisticsResult()
 
+    const statisticsChange = calcChange(today, yesterday);
 
     const {data: danmuData, isLoading} = useQuery<DanmuMessageResponse, Error>(
         {
