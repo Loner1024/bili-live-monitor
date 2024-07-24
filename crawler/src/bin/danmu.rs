@@ -6,17 +6,22 @@ use danmu_client::danmu::Client;
 use duckdb::Connection;
 use log::{debug, error, info};
 use parse::Message;
+use std::process::exit;
+use std::time::Duration;
 use tokio::signal;
 use tokio::sync::watch;
 use tokio::task::LocalSet;
+use tokio::time::sleep;
 use utils::utils::{get_rooms, is_new_day};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // dotenv::dotenv().ok();
     pretty_env_logger::init_timed();
     let cookies = String::from_utf8(
         base64::engine::general_purpose::STANDARD.decode(std::env::var("BILI_COOKIE")?)?,
     )?;
+    // let cookies = std::env::var("BILI_COOKIE")?;
     debug!("{}", cookies);
 
     let room_ids = get_rooms(); // 传入多个 room_id
@@ -24,6 +29,7 @@ async fn main() -> Result<()> {
     let local_set = LocalSet::new();
 
     let (shutdown_tx, shutdown_rx) = watch::channel(());
+    let main_shutdown_tx = shutdown_tx.clone();
 
     let shutdown_signal = tokio::spawn(async move {
         let sigint = signal::ctrl_c();
@@ -37,8 +43,7 @@ async fn main() -> Result<()> {
                 info!("Received SIGTERM, shutting down...");
             },
         }
-
-        let _ = shutdown_tx.send(());
+        let _ = main_shutdown_tx.send(());
         Result::<(), anyhow::Error>::Ok(())
     });
 
@@ -56,9 +61,13 @@ async fn main() -> Result<()> {
                     }
                 };
                 let shutdown_rx = shutdown_rx.clone();
+                let err_shutdown_tx = shutdown_tx.clone();
                 let task = tokio::task::spawn_local(async move {
                     if let Err(e) = process_room(room_id, cookies, conn, shutdown_rx).await {
                         error!("Error processing room {}: {:?}", room_id, e);
+                        let _ = err_shutdown_tx.send(());
+                        sleep(Duration::from_secs(30)).await;
+                        exit(0);
                     }
                 });
                 tasks.push(task);
