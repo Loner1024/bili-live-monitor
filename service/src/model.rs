@@ -139,7 +139,7 @@ pub struct QueryStatisticsResponse {
     pub data: QueryStatisticsData,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 pub struct QueryStatisticsData {
     pub today: statistics::StatisticsResult,
     pub yesterday: statistics::StatisticsResult,

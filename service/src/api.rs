@@ -4,20 +4,20 @@ use crate::model::{
     CheckerResponse, QueryRequest, QueryResponse, QueryStatisticsData, QueryStatisticsRequest,
     QueryStatisticsResponse,
 };
+use crate::AppState;
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
 use axum::Json;
 use chrono::Duration;
-use queryer::Queryer;
-use std::sync::Arc;
 use tracing::{debug, info};
 use utils::utils::{get_rooms, MessageType, Pagination};
 
 pub async fn query(
-    State(storage): State<Arc<Queryer>>,
+    State(state): State<AppState>,
     room_id: Result<Path<i64>, PathRejection>,
     req: Result<Query<QueryRequest>, QueryRejection>,
 ) -> Result<Json<QueryResponse>, AppError> {
+    let storage = state.queryer;
     let room_id = match room_id {
         Ok(id) => id.0,
         Err(e) => {
@@ -78,9 +78,10 @@ pub async fn query(
 }
 
 pub async fn checker(
-    State(storage): State<Arc<Queryer>>,
+    State(state): State<AppState>,
     req: Result<Query<CheckerRequest>, QueryRejection>,
 ) -> Result<Json<CheckerResponse>, AppError> {
+    let storage = state.queryer;
     let req = extract_req(req)?;
     let mut result = vec![];
     for room in get_rooms() {
@@ -105,31 +106,42 @@ pub async fn checker(
 }
 
 pub async fn query_statistics(
-    State(storage): State<Arc<Queryer>>,
+    State(state): State<AppState>,
     req: Result<Query<QueryStatisticsRequest>, QueryRejection>,
 ) -> Result<Json<QueryStatisticsResponse>, AppError> {
+    let (storage, cache) = (state.queryer, state.statistics_cache);
     let req = extract_req(req)?;
-    let today = match storage.query_statistics_data(req.room_id, req.timestamp) {
-        Ok(data) => data,
-        Err(e) => {
-            info!("query from db error: {}", e);
-            return Err(AppError::QueryError);
+
+    let data = match cache.get(&req.room_id).await {
+        Some(data) => data,
+        None => {
+            let today = match storage.query_statistics_data(req.room_id, req.timestamp) {
+                Ok(data) => data,
+                Err(e) => {
+                    info!("query from db error: {}", e);
+                    return Err(AppError::QueryError);
+                }
+            };
+            let yesterday = match storage
+                .query_statistics_data(req.room_id, req.timestamp - Duration::days(1).num_seconds())
+            {
+                Ok(data) => data,
+                Err(e) => {
+                    info!("query from db error: {}", e);
+                    return Err(AppError::QueryError);
+                }
+            };
+            let data = QueryStatisticsData { today, yesterday };
+            cache.insert(req.room_id, data.clone()).await;
+            data
         }
     };
-    let yesterday = match storage
-        .query_statistics_data(req.room_id, req.timestamp - Duration::days(1).num_seconds())
-    {
-        Ok(data) => data,
-        Err(e) => {
-            info!("query from db error: {}", e);
-            return Err(AppError::QueryError);
-        }
-    };
-    debug!("today: {:?}, yesterday: {:?}", today, yesterday);
+
+    debug!("today: {:?}, yesterday: {:?}", data.today, data.yesterday);
     Ok(Json(QueryStatisticsResponse {
         code: 0,
         message: "success".to_string(),
-        data: QueryStatisticsData { today, yesterday },
+        data,
     }))
 }
 
