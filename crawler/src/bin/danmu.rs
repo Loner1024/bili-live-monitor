@@ -25,6 +25,7 @@ async fn main() -> Result<()> {
     debug!("{}", cookies);
 
     let room_ids = get_rooms(); // 传入多个 room_id
+    info!("获取到 {} 个 room {:?}", room_ids.len(), room_ids);
 
     let local_set = LocalSet::new();
 
@@ -46,12 +47,14 @@ async fn main() -> Result<()> {
         let _ = main_shutdown_tx.send(());
         Result::<(), anyhow::Error>::Ok(())
     });
+    info!("启动监听信号");
 
     local_set
         .run_until(async move {
             let mut tasks = Vec::new();
 
             for room_id in room_ids {
+                info!("开始启动 room_id: {}", room_id);
                 let cookies = cookies.clone();
                 let conn = match Connection::open_in_memory() {
                     Ok(conn) => conn,
