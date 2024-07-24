@@ -121,7 +121,7 @@ impl<'a> Storage<'a> {
         Ok(())
     }
 
-    fn flush_with_strategy(&mut self, strategy: fn(&Storage) -> bool) -> Result<()> {
+    fn flush_with_strategy(&mut self, strategy: fn(&mut Storage) -> bool) -> Result<()> {
         if strategy(self) {
             self.flush()?;
         }
@@ -151,7 +151,7 @@ impl<'a> Storage<'a> {
     }
 }
 
-fn strategy_with_time_and_count(storage: &Storage) -> bool {
+fn strategy_with_time_and_count(storage: &mut Storage) -> bool {
     if storage
         .danmu_message_buffer_size
         .load(atomic::Ordering::SeqCst)
@@ -162,6 +162,7 @@ fn strategy_with_time_and_count(storage: &Storage) -> bool {
     let timestamp = Utc::now().timestamp();
     // minimum flush interval is 5 minutes
     if timestamp >= storage.last_flush_timestamp + Duration::minutes(5).num_seconds() {
+        storage.last_flush_timestamp = timestamp;
         return true;
     }
     false
