@@ -1,4 +1,5 @@
 use anyhow::Result;
+use chrono::{Duration, Utc};
 use duckdb::{params, Appender, Connection};
 use log::{debug, info};
 use parse::{DanmuMessage, SuperChatMessage};
@@ -9,6 +10,7 @@ pub struct Storage<'a> {
     conn: &'a Connection,
     danmu_message_buffer: Appender<'a>,
     danmu_message_buffer_size: atomic::AtomicI32,
+    last_flush_timestamp: i64,
     bucket: String,
     timestamp: i64,
     room_id: i64,
@@ -23,6 +25,7 @@ impl<'a> Storage<'a> {
             conn,
             danmu_message_buffer: conn.appender("danmu")?,
             danmu_message_buffer_size: atomic::AtomicI32::new(0),
+            last_flush_timestamp: Utc::now().timestamp(),
             bucket: oss_config.bucket,
             room_id,
             timestamp,
@@ -67,13 +70,7 @@ impl<'a> Storage<'a> {
         ])?;
         self.danmu_message_buffer_size
             .fetch_add(1, atomic::Ordering::SeqCst);
-        if self
-            .danmu_message_buffer_size
-            .load(atomic::Ordering::SeqCst)
-            >= 100
-        {
-            self.flush()?;
-        }
+        self.flush_with_strategy(strategy_with_time_and_count)?;
         Ok(())
     }
 
@@ -93,13 +90,7 @@ impl<'a> Storage<'a> {
         ])?;
         self.danmu_message_buffer_size
             .fetch_add(1, atomic::Ordering::SeqCst);
-        if self
-            .danmu_message_buffer_size
-            .load(atomic::Ordering::SeqCst)
-            >= 100
-        {
-            self.flush()?;
-        }
+        self.flush_with_strategy(strategy_with_time_and_count)?;
         Ok(())
     }
 
@@ -130,6 +121,13 @@ impl<'a> Storage<'a> {
         Ok(())
     }
 
+    fn flush_with_strategy(&mut self, strategy: fn(&Storage) -> bool) -> Result<()> {
+        if strategy(self) {
+            self.flush()?;
+        }
+        Ok(())
+    }
+
     pub fn flush(&mut self) -> Result<()> {
         self.danmu_message_buffer.flush()?;
         self.danmu_message_buffer_size
@@ -151,6 +149,22 @@ impl<'a> Storage<'a> {
         Self::init_table(self.conn, &self.bucket, self.room_id, timestamp)?;
         Ok(())
     }
+}
+
+fn strategy_with_time_and_count(storage: &Storage) -> bool {
+    if storage
+        .danmu_message_buffer_size
+        .load(atomic::Ordering::SeqCst)
+        > 100
+    {
+        return true;
+    }
+    let timestamp = Utc::now().timestamp();
+    // minimum flush interval is 5 minutes
+    if timestamp >= storage.last_flush_timestamp + Duration::minutes(5).num_seconds() {
+        return true;
+    }
+    false
 }
 
 #[cfg(test)]
