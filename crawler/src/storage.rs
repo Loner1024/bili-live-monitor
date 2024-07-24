@@ -31,7 +31,7 @@ impl<'a> Storage<'a> {
 
     fn init_table(conn: &Connection, bucket: &str, room_id: i64, timestamp: i64) -> Result<()> {
         conn.execute(
-            "CREATE TABLE danmu (
+            "CREATE TABLE IF NOT EXISTS danmu (
                 msg_type UTINYINT,
                 uid BIGINT,
                 username TEXT,
