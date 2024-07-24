@@ -152,11 +152,13 @@ impl<'a> Storage<'a> {
 }
 
 fn strategy_with_time_and_count(storage: &mut Storage) -> bool {
-    if storage
+    let count = storage
         .danmu_message_buffer_size
-        .load(atomic::Ordering::SeqCst)
-        > 100
-    {
+        .load(atomic::Ordering::SeqCst);
+    if count == 0 {
+        return false;
+    }
+    if count > 100 {
         return true;
     }
     let timestamp = Utc::now().timestamp();
