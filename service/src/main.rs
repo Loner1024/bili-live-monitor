@@ -23,7 +23,7 @@ pub mod model;
 #[derive(Clone)]
 struct AppState {
     queryer: Arc<Queryer>,
-    statistics_cache: Arc<Cache<i64, QueryStatisticsData>>,
+    statistics_cache: Arc<Cache<(i64, i64), QueryStatisticsData>>,
 }
 
 #[tokio::main]
@@ -40,7 +40,7 @@ async fn main() -> Result<()> {
     let manager = DuckdbConnectionManager::memory()?;
     let pool = Pool::new(manager)?;
     let queryer = Arc::new(Queryer::new(pool)?);
-    let statistics_cache: Cache<i64, QueryStatisticsData> = Cache::builder()
+    let statistics_cache: Cache<(i64, i64), QueryStatisticsData> = Cache::builder()
         .time_to_live(Duration::minutes(10).to_std()?)
         .build();
 

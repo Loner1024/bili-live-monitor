@@ -10,7 +10,7 @@ use axum::extract::{Path, Query, State};
 use axum::Json;
 use chrono::Duration;
 use tracing::{debug, info};
-use utils::utils::{get_rooms, MessageType, Pagination};
+use utils::utils::{get_local_midnight, get_rooms, MessageType, Pagination};
 
 pub async fn query(
     State(state): State<AppState>,
@@ -112,7 +112,13 @@ pub async fn query_statistics(
     let (storage, cache) = (state.queryer, state.statistics_cache);
     let req = extract_req(req)?;
 
-    let data = match cache.get(&req.room_id).await {
+    let data = match cache
+        .get(&(
+            req.room_id,
+            get_local_midnight(req.timestamp).map_err(|_| AppError::QueryError)?,
+        ))
+        .await
+    {
         Some(data) => data,
         None => {
             let today = match storage.query_statistics_data(req.room_id, req.timestamp) {
@@ -132,7 +138,15 @@ pub async fn query_statistics(
                 }
             };
             let data = QueryStatisticsData { today, yesterday };
-            cache.insert(req.room_id, data.clone()).await;
+            cache
+                .insert(
+                    (
+                        req.room_id,
+                        get_local_midnight(req.timestamp).map_err(|_| AppError::QueryError)?,
+                    ),
+                    data.clone(),
+                )
+                .await;
             data
         }
     };
