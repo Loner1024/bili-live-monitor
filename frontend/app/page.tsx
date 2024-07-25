@@ -14,6 +14,7 @@ import {DanmuMessage, DanmuMessageResponse, StatisticsResponse, StatisticsResult
 import {useRoom} from "@/context/RoomContext";
 import {Loading} from "@/components/loading";
 import {getFormatTime, getTimestampSecs} from "@/utils/utils";
+import {quartersInYear} from "date-fns/constants";
 
 const queryClient = new QueryClient();
 
@@ -102,18 +103,9 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
     const [queryParam, setQueryParam] = useState<QueryParam>({
         timestamp,
         message: "",
-        message_type: ""
+        message_type: "danmu"
     })
 
-    useEffect(() => {
-        setOffset(0)
-        setMessageType("danmu")
-        setMessage("")
-        setTimestamp(getTimestampSecs(curDate))
-        setQueryParam(prev => ({...prev, message: "", message_type: "danmu", timestamp: getTimestampSecs(curDate)}))
-    }, [roomId]);
-
-    // const statisticsQueryClient = useQueryClient();
     const queryClient = useQueryClient();
     const {data: statisticsData,error, isLoading: statisticsIsLoading} = useQuery<StatisticsResponse, Error>(
         {
@@ -121,14 +113,23 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
             queryFn: () => statisticsFetcher({
                 room_id: roomId,
                 timestamp: queryParam.timestamp,
-            })
+            }),
         },
         queryClient
     );
+
     let today = statisticsData?.data.today || new StatisticsResult()
     let yesterday = statisticsData?.data.yesterday || new StatisticsResult()
 
     const statisticsChange = calcChange(today, yesterday);
+
+    useEffect(() => {
+        setOffset(0)
+        setMessageType("danmu")
+        setMessage("")
+        setTimestamp(getTimestampSecs(curDate))
+        setQueryParam({message: "", message_type: "danmu", timestamp: getTimestampSecs(curDate)})
+    }, [roomId]);
 
     const {data: danmuData, isLoading} = useQuery<DanmuMessageResponse, Error>(
         {
@@ -140,7 +141,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
                 timestamp: queryParam.timestamp,
                 limit,
                 offset
-            })
+            }),
         },
         queryClient
     );
