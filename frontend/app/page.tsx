@@ -14,7 +14,6 @@ import {DanmuMessage, DanmuMessageResponse, StatisticsResponse, StatisticsResult
 import {useRoom} from "@/context/RoomContext";
 import {Loading} from "@/components/loading";
 import {getFormatTime, getTimestampSecs} from "@/utils/utils";
-import {quartersInYear} from "date-fns/constants";
 
 const queryClient = new QueryClient();
 
@@ -107,7 +106,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
     })
 
     const queryClient = useQueryClient();
-    const {data: statisticsData,error, isLoading: statisticsIsLoading} = useQuery<StatisticsResponse, Error>(
+    let {data: statisticsData,error, isLoading: statisticsIsLoading} = useQuery<StatisticsResponse, Error>(
         {
             queryKey: [`statistics`, roomId],
             queryFn: () => statisticsFetcher({
@@ -117,6 +116,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
         },
         queryClient
     );
+    statisticsData = statisticsData?.code == -1 ? new StatisticsResponse() : statisticsData;
 
     let today = statisticsData?.data.today || new StatisticsResult()
     let yesterday = statisticsData?.data.yesterday || new StatisticsResult()
