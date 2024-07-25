@@ -73,6 +73,10 @@ impl<'a> Statistics<'a> {
                 )
                 .is_err()
             {
+                info!(
+                    "[room: {}] remote {} table not exist, create it and crate local table",
+                    room_id, remote_table_name
+                );
                 // create local table
                 self.conn
                     .execute(self.get_create_ddl(local_table.as_str()).as_str(), [])?;
@@ -80,6 +84,10 @@ impl<'a> Statistics<'a> {
                     .execute(&format!("COPY {local_table} TO '{remote_table_name}'"), [])?;
             } else {
                 // load remote data to local
+                info!(
+                    "[room: {}] remote {} table exist, load it to local table",
+                    room_id, remote_table_name
+                );
                 self.conn.execute(
                     &format!("CREATE TABLE {local_table} AS SELECT * FROM '{remote_table_name}'"),
                     [],
