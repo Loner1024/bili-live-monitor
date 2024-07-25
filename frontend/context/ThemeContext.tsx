@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 
 interface ThemeContextProps {
     theme: string;
@@ -8,7 +8,7 @@ interface ThemeContextProps {
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+export const ThemeProvider = ({children}: { children: ReactNode }) => {
     const [theme, setTheme] = useState('light');
 
     useEffect(() => {
@@ -27,7 +27,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <ThemeContext.Provider value={{theme, toggleTheme}}>
             <div className={theme}>
                 {children}
             </div>

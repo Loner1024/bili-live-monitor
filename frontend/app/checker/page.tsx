@@ -3,11 +3,10 @@ import React, {useState} from 'react';
 import {Input, InputGroup} from "@/components/input";
 import {ArrowPathIcon, MagnifyingGlassIcon} from "@heroicons/react/24/solid";
 import {Button} from "@/components/button";
-import {Table, TableHead, TableHeader, TableRow} from "@/components/table";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/table";
 import {QueryClient, QueryClientProvider, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Loading} from "@/components/loading";
 import {parse} from "date-fns";
-import {TableCell, TableBody} from "@/components/table";
 import {getFormatTime, getTimestampSecs} from "@/utils/utils";
 import {streamers} from "@/data/streamers"
 
@@ -34,7 +33,7 @@ interface CheckerData {
 }
 
 const queryClient = new QueryClient();
-const streamerData =  streamers
+const streamerData = streamers
 const curDate = new Date();
 
 const DataTable = () => {
@@ -79,7 +78,7 @@ const DataTable = () => {
                             <Input
                                 onChange={(e) => setUid(parseInt(e.target.value))}
                                 name="search"
-                                placeholder="输入 uid 查询" aria-label="Search" />
+                                placeholder="输入 uid 查询" aria-label="Search"/>
                         </InputGroup>
                     </div>
                     <Button

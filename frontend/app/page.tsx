@@ -106,7 +106,7 @@ const DataTable: React.FC<DataFetcherProps> = ({roomId}) => {
     })
 
     const queryClient = useQueryClient();
-    let {data: statisticsData,error, isLoading: statisticsIsLoading} = useQuery<StatisticsResponse, Error>(
+    let {data: statisticsData, error, isLoading: statisticsIsLoading} = useQuery<StatisticsResponse, Error>(
         {
             queryKey: [`statistics`, roomId],
             queryFn: () => statisticsFetcher({

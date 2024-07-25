@@ -21,8 +21,7 @@ import {faBackward} from "@fortawesome/free-solid-svg-icons";
 import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import {useRoom} from "@/context/RoomContext";
-import {usePathname} from 'next/navigation';
-import { useRouter } from 'next/navigation'
+import {usePathname, useRouter} from 'next/navigation';
 
 export class StatisticsResult {
     danmu_total: number = 0      // 总弹幕数量

@@ -22,7 +22,7 @@ interface RoomContextProps {
 const RoomContext = createContext<RoomContextProps | undefined>(undefined);
 const streamerData: streamer[] = streamers;
 
-export const RoomProvider = ({children}: {children: React.ReactNode}) => {
+export const RoomProvider = ({children}: { children: React.ReactNode }) => {
     const [id, setId] = useState<number>(0);
     const [roomInfo, setRoomInfo] = useState<streamer>(streamerData[0]);
 
@@ -36,11 +36,11 @@ export const RoomProvider = ({children}: {children: React.ReactNode}) => {
     const toggleRoom = (id: number) => {
         setId(id);
     };
-        return (
-            <RoomContext.Provider value={{id, roomInfo, toggleRoom}}>
-                {children}
-            </RoomContext.Provider>
-        );
+    return (
+        <RoomContext.Provider value={{id, roomInfo, toggleRoom}}>
+            {children}
+        </RoomContext.Provider>
+    );
 }
 
 export const useRoom = () => {
