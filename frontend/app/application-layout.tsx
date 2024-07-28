@@ -17,7 +17,7 @@ import {TextLink} from "@/components/text"
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faBilibili, faSearchengin} from "@fortawesome/free-brands-svg-icons";
 import React from "react";
-import {faBackward} from "@fortawesome/free-solid-svg-icons";
+import {faBackward, faBug} from "@fortawesome/free-solid-svg-icons";
 import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import {useRoom} from "@/context/RoomContext";
@@ -65,7 +65,7 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
     const router = useRouter();
 
     const handleClick = (id: number) => {
-        if (currentPath == "/checker") {
+        if (currentPath != "/") {
             router.push("/")
         }
         toggleRoom(id)
@@ -125,9 +125,13 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                                 </DropdownMenu>
                             </Dropdown>
                             <SidebarSection className={"mt-3"}>
-                                <SidebarItem href={"/checker"} className={"flex grow gap-2 items-center font-medium"}>
-                                    <FontAwesomeIcon icon={faSearchengin} size={"2xs"} className={"size-8"}/>
+                                <SidebarItem href={"/checker"} className={"flex justify-between gap-2 items-center font-medium"}>
+                                    <FontAwesomeIcon icon={faSearchengin} className={"size-8"}/>
                                     <SidebarLabel className={"ml-4 text-lg"}>查成分</SidebarLabel>
+                                </SidebarItem>
+                                <SidebarItem href={"/block_user"} className={"flex justify-between gap-2 items-center font-medium"}>
+                                    <FontAwesomeIcon icon={faBug} className={"size-8"}/>
+                                    <SidebarLabel className={"ml-4 text-lg"}>四害榜</SidebarLabel>
                                 </SidebarItem>
                             </SidebarSection>
                         </div>
@@ -138,7 +142,7 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                                     <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
                                 </SidebarItem>
                             </SidebarSection> : null}
-                            {currentPath == "/checker" ? <SidebarSection>
+                            {currentPath != "/" ? <SidebarSection>
                                 <SidebarItem href={"/"} className={"text-base font-medium"}>
                                     <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
                                     <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
