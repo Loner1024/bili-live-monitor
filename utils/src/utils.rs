@@ -67,6 +67,10 @@ impl Display for MessageType {
     }
 }
 
+pub fn remote_block_user_table_name(bucket: &str) -> String {
+    format!("s3://{bucket}/block/block_user.parquet")
+}
+
 // 获取表名
 pub fn get_table_name(bucket: &str, room_id: i64, timestamp: i64) -> Result<String> {
     let datetime = Utc

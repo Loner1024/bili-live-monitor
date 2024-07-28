@@ -2,9 +2,9 @@ use anyhow::Result;
 use chrono::{Duration, Utc};
 use duckdb::{params, Appender, Connection};
 use log::{debug, info};
-use parse::{DanmuMessage, SuperChatMessage};
+use parse::{BlockUserMessage, DanmuMessage, SuperChatMessage};
 use std::sync::atomic;
-use utils::utils::{get_table_name, MessageType, OssConfig};
+use utils::utils::{get_table_name, remote_block_user_table_name, MessageType, OssConfig};
 
 pub struct Storage<'a> {
     conn: &'a Connection,
@@ -56,6 +56,42 @@ impl<'a> Storage<'a> {
             conn.execute(&format!("COPY danmu TO '{danmu_target}'"), [])?;
         }
 
+        // init block user table
+        let remote_block_user_table_name = remote_block_user_table_name(bucket);
+        let local_table = "block_user".to_string();
+        if conn
+            .execute(
+                &format!("SELECT COUNT(*) as count FROM '{remote_block_user_table_name}'"),
+                [],
+            )
+            .is_err()
+        {
+            conn.execute(
+                format!(
+                    "CREATE TABLE IF NOT EXISTS {local_table} (
+                uid BIGINT,
+                username TEXT,
+                room_id BIGINT,
+                operator UTINYINT,
+                timestamp BIGINT,
+            )"
+                )
+                .as_str(),
+                [],
+            )?;
+            conn.execute(
+                &format!("COPY {local_table} TO '{remote_block_user_table_name}'"),
+                [],
+            )?;
+        } else {
+            conn.execute(
+                &format!(
+                    "CREATE TABLE {local_table} AS SELECT * FROM '{remote_block_user_table_name}'"
+                ),
+                [],
+            )?;
+        }
+
         Ok(())
     }
 
@@ -71,6 +107,25 @@ impl<'a> Storage<'a> {
         self.danmu_message_buffer_size
             .fetch_add(1, atomic::Ordering::SeqCst);
         self.flush_with_strategy(strategy_with_time_and_count)?;
+        Ok(())
+    }
+
+    pub fn create_block_user_message(&mut self, message: BlockUserMessage) -> Result<()> {
+        let remote_block_user_table_name = remote_block_user_table_name(self.bucket.as_str());
+        let stmt = format!(
+            "INSERT INTO 'block_user' (uid, username, room_id, operator, timestamp)
+             VALUES ({}, '{}', {}, {}, {})",
+            message.uid,
+            message.username,
+            message.room_id,
+            i16::from(message.operator),
+            message.timestamp
+        );
+        self.conn.execute(stmt.as_str(), [])?;
+        self.conn.execute(
+            &format!("COPY 'block_user'  TO '{remote_block_user_table_name}'"),
+            [],
+        )?;
         Ok(())
     }
 
@@ -175,10 +230,28 @@ mod tests {
     use super::*;
     use chrono::Utc;
     use dotenv::dotenv;
+    use parse::BlockUserEnum;
 
     fn init() {
         pretty_env_logger::init();
         dotenv().ok();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_create_block_user_message() {
+        init();
+        let conn = Connection::open_in_memory().unwrap();
+        let now = Utc::now();
+        let block_user = BlockUserMessage {
+            uid: 10000,
+            username: "我是四害".to_string(),
+            room_id: 22747736,
+            operator: BlockUserEnum::Manager,
+            timestamp: now.timestamp(),
+        };
+        let mut storage = Storage::new(&conn, block_user.room_id as i64, now.timestamp()).unwrap();
+        storage.create_block_user_message(block_user).unwrap();
     }
 
     #[test]

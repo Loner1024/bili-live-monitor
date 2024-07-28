@@ -122,8 +122,10 @@ async fn process_room(
                         Message::SuperChat(msg) => {
                             storage.create_super_chat_message(msg)?;
                         }
+                        Message::BlockUser(msg) => {
+                            storage.create_block_user_message(msg)?;
+                        }
                         Message::Default => {},
-                        _ => {},
                     }
                 }
             },

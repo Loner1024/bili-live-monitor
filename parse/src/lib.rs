@@ -62,6 +62,16 @@ impl From<i16> for BlockUserEnum {
     }
 }
 
+impl From<BlockUserEnum> for i16 {
+    fn from(value: BlockUserEnum) -> Self {
+        match value {
+            BlockUserEnum::Manager => 1,
+            BlockUserEnum::Owner => 2,
+            BlockUserEnum::Other => 0,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Message {
     Danmu(DanmuMessage),
