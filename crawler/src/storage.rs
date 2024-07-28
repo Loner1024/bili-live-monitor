@@ -245,7 +245,7 @@ mod tests {
         let now = Utc::now();
         let block_user = BlockUserMessage {
             uid: 10000,
-            username: "我是四害".to_string(),
+            username: "这条是新的".to_string(),
             room_id: 22747736,
             operator: BlockUserEnum::Manager,
             timestamp: now.timestamp(),

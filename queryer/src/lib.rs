@@ -208,8 +208,13 @@ impl Queryer {
         };
         let remote_table = remote_block_user_table_name(self.bucket.as_str());
         let conn = self.pool.get()?;
-        let mut stmt = conn
-            .prepare(format!("SELECT * FROM '{}' {}", remote_table, pagination_clause).as_str())?;
+        let mut stmt = conn.prepare(
+            format!(
+                "SELECT * FROM '{}' ORDER BY timestamp DESC {}",
+                remote_table, pagination_clause
+            )
+            .as_str(),
+        )?;
         let mut rows = stmt.query([])?;
         let mut result = vec![];
         while let Some(row) = rows.next()? {
