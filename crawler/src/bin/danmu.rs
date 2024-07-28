@@ -122,7 +122,8 @@ async fn process_room(
                         Message::SuperChat(msg) => {
                             storage.create_super_chat_message(msg)?;
                         }
-                        Message::Default => {}
+                        Message::Default => {},
+                        _ => {},
                     }
                 }
             },

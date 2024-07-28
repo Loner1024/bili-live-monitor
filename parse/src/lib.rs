@@ -37,11 +37,38 @@ pub struct SuperChatMessage {
 }
 
 #[derive(Debug, Clone)]
+pub struct BlockUserMessage {
+    pub uid: u64,
+    pub username: String,
+    pub room_id: u64,
+    pub operator: BlockUserEnum,
+    pub timestamp: i64,
+}
+
+#[derive(Debug, Clone)]
+pub enum BlockUserEnum {
+    Owner,   // 主播
+    Manager, // 房管
+    Other,
+}
+
+impl From<i16> for BlockUserEnum {
+    fn from(value: i16) -> Self {
+        match value {
+            1 => BlockUserEnum::Manager,
+            2 => BlockUserEnum::Owner,
+            _ => BlockUserEnum::Other,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum Message {
     Danmu(DanmuMessage),
     EnterRoom(EnterRoomMessage),
     OnlineCount(OnlineCountMessage),
     SuperChat(SuperChatMessage),
+    BlockUser(BlockUserMessage),
     Default,
 }
 
@@ -56,6 +83,7 @@ impl TryFrom<&[u8]> for Message {
             "INTERACT_WORD" => bili_message.get_enter_room(),
             "SUPER_CHAT_MESSAGE" => bili_message.get_super_chat(),
             "ONLINE_RANK_COUNT" => bili_message.get_online_count(),
+            "ROOM_BLOCK_MSG" => bili_message.get_block_user_message(),
 
             // ignore
             "WATCHED_CHANGE"
@@ -226,6 +254,10 @@ pub struct BiliMessageData {
     pub online_count: Option<u64>,
     pub message: Option<String>,
     pub price: Option<f64>,
+    pub uid: Option<u64>,
+    pub uname: Option<String>,
+    pub operator: Option<i16>,
+    pub roomid: Option<u64>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -302,6 +334,24 @@ impl BiliMessage {
             msg: data.message.ok_or(anyhow!("Failed to get data"))?,
             timestamp: self.send_time.ok_or(anyhow!("Failed to get send_time"))? / 1000,
             worth: data.price.ok_or(anyhow!("Failed to get worth"))?,
+        }))
+    }
+
+    fn get_block_user_message(self) -> Result<Message> {
+        if self.cmd != Some("ROOM_BLOCK_MSG".to_string()) {
+            return Err(anyhow!("Not a block user message"));
+        }
+        let data = self.data.ok_or(anyhow!("Failed to get data"))?;
+
+        Ok(Message::BlockUser(BlockUserMessage {
+            uid: data.uid.ok_or(anyhow!("Failed to get uid"))?,
+            username: data.uname.ok_or(anyhow!("Failed to get username"))?,
+            room_id: data.roomid.ok_or(anyhow!("Failed to get room_id"))?,
+            operator: data
+                .operator
+                .ok_or(anyhow!("Failed to get operator"))?
+                .into(),
+            timestamp: Utc::now().timestamp(),
         }))
     }
 }
