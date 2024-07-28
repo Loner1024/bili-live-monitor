@@ -1,10 +1,11 @@
 use anyhow::Result;
 use duckdb::DuckdbConnectionManager;
 use model::statistics;
-use parse::{DanmuMessage, Message, SuperChatMessage};
+use parse::{BlockUserMessage, DanmuMessage, Message, SuperChatMessage};
 use r2d2::Pool;
 use utils::utils::{
-    get_local_midnight, get_table_name, init_oss_with_pool, MessageType, OssConfig, Pagination,
+    get_local_midnight, get_table_name, init_oss_with_pool, remote_block_user_table_name,
+    MessageType, OssConfig, Pagination,
 };
 
 #[derive(Clone)]
@@ -183,6 +184,40 @@ impl Queryer {
                 })
             },
         )?;
+        Ok(result)
+    }
+
+    pub fn query_block_user_data(
+        &self,
+        pagination: Option<Pagination>,
+    ) -> Result<Vec<BlockUserMessage>> {
+        let pagination_clause = match pagination {
+            None => String::from(""),
+            Some(pagination) => {
+                format!("LIMIT {} OFFSET {}", pagination.limit, pagination.offset)
+            }
+        };
+        let remote_table = remote_block_user_table_name(self.bucket.as_str());
+        let conn = self.pool.get()?;
+        let mut stmt = conn
+            .prepare(format!("SELECT * FROM '{}' {}", remote_table, pagination_clause).as_str())?;
+        let mut rows = stmt.query([])?;
+        let mut result = vec![];
+        while let Some(row) = rows.next()? {
+            let uid: u64 = row.get("uid")?;
+            let username: String = row.get("username")?;
+            let operator: i16 = row.get("operator")?;
+            let timestamp = row.get("timestamp")?;
+            let room_id = row.get("room_id")?;
+            result.push(BlockUserMessage {
+                uid,
+                username,
+                operator: operator.into(),
+                timestamp,
+                room_id,
+            });
+        }
+
         Ok(result)
     }
 }
