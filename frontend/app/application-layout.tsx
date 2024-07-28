@@ -14,10 +14,8 @@ import {
 import {SidebarLayout} from '@/components/sidebar-layout'
 import {Heading, Subheading} from "@/components/heading"
 import {TextLink} from "@/components/text"
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faBilibili, faSearchengin} from "@fortawesome/free-brands-svg-icons";
 import React from "react";
-import {faBackward, faBug} from "@fortawesome/free-solid-svg-icons";
+import {BackOne, Bug, Search, TvOne} from "@icon-park/react"
 import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import {useRoom} from "@/context/RoomContext";
@@ -101,7 +99,7 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                                 <DropdownButton as={SidebarItem} className="lg:mb-2.5">
                                     <SidebarLabel
                                         className={"flex grow gap-2 items-center text-lg font-medium hover:cursor-pointer"}>
-                                        <FontAwesomeIcon icon={faBilibili} size={"2xs"} className={"size-8"}/>
+                                        <TvOne theme="outline" size="24" fill="#333"/>
                                         总监的同事们
                                     </SidebarLabel>
                                     <ChevronDownIcon/>
@@ -125,12 +123,15 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                                 </DropdownMenu>
                             </Dropdown>
                             <SidebarSection className={"mt-3"}>
-                                <SidebarItem href={"/checker"} className={"flex justify-between gap-2 items-center font-medium"}>
-                                    <FontAwesomeIcon icon={faSearchengin} className={"size-8"}/>
+                                <SidebarItem href={"/checker"}
+                                             className={"flex justify-between gap-2 items-center font-medium"}>
+                                    {/*<FontAwesomeIcon icon={faSearchengin} className={"size-8"}/>*/}
+                                    <Search theme="outline" size="24" fill="#333"/>
                                     <SidebarLabel className={"ml-4 text-lg"}>查成分</SidebarLabel>
                                 </SidebarItem>
-                                <SidebarItem href={"/block_user"} className={"flex justify-between gap-2 items-center font-medium"}>
-                                    <FontAwesomeIcon icon={faBug} className={"size-8"}/>
+                                <SidebarItem href={"/block_user"}
+                                             className={"flex justify-between gap-2 items-center font-medium"}>
+                                    <Bug theme="outline" size="24" fill="#333"/>
                                     <SidebarLabel className={"ml-4 text-lg"}>四害榜</SidebarLabel>
                                 </SidebarItem>
                             </SidebarSection>
@@ -138,13 +139,13 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                         <div>
                             {id != 0 ? <SidebarSection>
                                 <SidebarItem onClick={() => handleClick(0)} className={"text-base font-medium"}>
-                                    <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
+                                    <BackOne theme="outline" size="24" fill="#333"/>
                                     <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
                                 </SidebarItem>
                             </SidebarSection> : null}
                             {currentPath != "/" ? <SidebarSection>
                                 <SidebarItem href={"/"} className={"text-base font-medium"}>
-                                    <FontAwesomeIcon icon={faBackward} className={"size-6"}/>
+                                    <BackOne theme="outline" size="24" fill="#333"/>
                                     <SidebarLabel className={"ml-4"}>回去看卢</SidebarLabel>
                                 </SidebarItem>
                             </SidebarSection> : null}
