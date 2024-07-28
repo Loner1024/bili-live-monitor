@@ -1,8 +1,8 @@
 use crate::error::AppError;
 use crate::model::{
     message_to_checker_response_date, message_vec_to_query_response_data_vec, CheckerRequest,
-    CheckerResponse, QueryRequest, QueryResponse, QueryStatisticsData, QueryStatisticsRequest,
-    QueryStatisticsResponse,
+    CheckerResponse, QueryBlockUserRequest, QueryBlockerResponse, QueryRequest, QueryResponse,
+    QueryStatisticsData, QueryStatisticsRequest, QueryStatisticsResponse,
 };
 use crate::AppState;
 use axum::extract::rejection::{PathRejection, QueryRejection};
@@ -156,6 +156,36 @@ pub async fn query_statistics(
         code: 0,
         message: "success".to_string(),
         data,
+    }))
+}
+
+pub async fn query_block_user(
+    State(state): State<AppState>,
+    req: Result<Query<QueryBlockUserRequest>, QueryRejection>,
+) -> Result<Json<QueryBlockerResponse>, AppError> {
+    let params = extract_req(req)?;
+    let count = match state.queryer.query_block_user_count() {
+        Ok(count) => count,
+        Err(e) => {
+            info!("query from db error: {}", e);
+            return Err(AppError::QueryError);
+        }
+    };
+    let result = match state.queryer.query_block_user_data(Some(Pagination {
+        limit: params.limit,
+        offset: params.offset,
+    })) {
+        Ok(data) => data.iter().map(|x| x.into()).collect(),
+        Err(e) => {
+            info!("query from db error: {}", e);
+            return Err(AppError::QueryError);
+        }
+    };
+    Ok(Json(QueryBlockerResponse {
+        code: 0,
+        message: "success".to_string(),
+        count: count as isize,
+        data: result,
     }))
 }
 

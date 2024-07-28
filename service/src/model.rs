@@ -1,6 +1,6 @@
 use crate::error::AppError;
 use model::statistics;
-use parse::Message;
+use parse::{BlockUserMessage, Message};
 use serde::{Deserialize, Serialize};
 use utils::utils::MessageType;
 
@@ -143,4 +143,39 @@ pub struct QueryStatisticsResponse {
 pub struct QueryStatisticsData {
     pub today: statistics::StatisticsResult,
     pub yesterday: statistics::StatisticsResult,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct QueryBlockUserRequest {
+    pub limit: usize,
+    pub offset: usize,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct QueryBlockerResponse {
+    pub code: isize,
+    pub message: String,
+    pub count: isize,
+    pub data: Vec<QueryBlockerResponseData>,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct QueryBlockerResponseData {
+    pub uid: u64,
+    pub username: String,
+    pub room_id: u64,
+    pub operator: i16,
+    pub timestamp: i64,
+}
+
+impl From<&BlockUserMessage> for QueryBlockerResponseData {
+    fn from(value: &BlockUserMessage) -> Self {
+        Self {
+            uid: value.uid,
+            username: value.username.clone(),
+            room_id: value.room_id,
+            operator: i16::from(value.clone().operator),
+            timestamp: value.timestamp,
+        }
+    }
 }

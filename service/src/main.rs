@@ -59,6 +59,7 @@ async fn main() -> Result<()> {
         .route("/api/:room_id", get(api::query))
         .route("/api/checker", get(api::checker))
         .route("/api/statistics", get(api::query_statistics))
+        .route("/api/block_user", get(api::query_block_user))
         .layer(cors)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(state);

@@ -187,6 +187,16 @@ impl Queryer {
         Ok(result)
     }
 
+    pub fn query_block_user_count(&self) -> Result<usize> {
+        let remote_table = remote_block_user_table_name(self.bucket.as_str());
+        let conn = self.pool.get()?;
+        let mut stmt = conn.prepare(format!("SELECT COUNT(*) FROM '{remote_table}'").as_str())?;
+        let mut rows = stmt.query([])?;
+        let count: usize = rows.next()?.unwrap().get(0)?;
+        Ok(count)
+    }
+
+
     pub fn query_block_user_data(
         &self,
         pagination: Option<Pagination>,
