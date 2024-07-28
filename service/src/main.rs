@@ -1,4 +1,4 @@
-use crate::model::QueryStatisticsData;
+use crate::model::{QueryBlockerResponse, QueryStatisticsData};
 use anyhow::Result;
 use axum::http::Method;
 use axum::routing::get;
@@ -24,6 +24,7 @@ pub mod model;
 struct AppState {
     queryer: Arc<Queryer>,
     statistics_cache: Arc<Cache<(i64, i64), QueryStatisticsData>>,
+    block_user_cache: Arc<Cache<(usize, usize), QueryBlockerResponse>>,
 }
 
 #[tokio::main]
@@ -44,9 +45,14 @@ async fn main() -> Result<()> {
         .time_to_live(Duration::minutes(10).to_std()?)
         .build();
 
+    let block_user_cache: Cache<(usize, usize), QueryBlockerResponse> = Cache::builder()
+        .time_to_live(Duration::minutes(10).to_std()?)
+        .build();
+
     let state = AppState {
         queryer,
         statistics_cache: Arc::new(statistics_cache),
+        block_user_cache: Arc::new(block_user_cache),
     };
 
     let cors = CorsLayer::new()

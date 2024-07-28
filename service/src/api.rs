@@ -164,29 +164,45 @@ pub async fn query_block_user(
     req: Result<Query<QueryBlockUserRequest>, QueryRejection>,
 ) -> Result<Json<QueryBlockerResponse>, AppError> {
     let params = extract_req(req)?;
-    let count = match state.queryer.query_block_user_count() {
-        Ok(count) => count,
-        Err(e) => {
-            info!("query from db error: {}", e);
-            return Err(AppError::QueryError);
+
+    let response = match state
+        .block_user_cache
+        .get(&(params.limit, params.offset))
+        .await
+    {
+        Some(resp) => resp,
+        None => {
+            let count = match state.queryer.query_block_user_count() {
+                Ok(count) => count,
+                Err(e) => {
+                    info!("query from db error: {}", e);
+                    return Err(AppError::QueryError);
+                }
+            };
+            let result = match state.queryer.query_block_user_data(Some(Pagination {
+                limit: params.limit,
+                offset: params.offset,
+            })) {
+                Ok(data) => data.iter().map(|x| x.into()).collect(),
+                Err(e) => {
+                    info!("query from db error: {}", e);
+                    return Err(AppError::QueryError);
+                }
+            };
+            let response = QueryBlockerResponse {
+                code: 0,
+                message: "success".to_string(),
+                count: count as isize,
+                data: result,
+            };
+            state
+                .block_user_cache
+                .insert((params.limit, params.offset), response.clone())
+                .await;
+            response
         }
     };
-    let result = match state.queryer.query_block_user_data(Some(Pagination {
-        limit: params.limit,
-        offset: params.offset,
-    })) {
-        Ok(data) => data.iter().map(|x| x.into()).collect(),
-        Err(e) => {
-            info!("query from db error: {}", e);
-            return Err(AppError::QueryError);
-        }
-    };
-    Ok(Json(QueryBlockerResponse {
-        code: 0,
-        message: "success".to_string(),
-        count: count as isize,
-        data: result,
-    }))
+    Ok(Json(response))
 }
 
 fn extract_req<T>(req: Result<Query<T>, QueryRejection>) -> Result<T, AppError> {

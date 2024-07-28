@@ -196,7 +196,6 @@ impl Queryer {
         Ok(count)
     }
 
-
     pub fn query_block_user_data(
         &self,
         pagination: Option<Pagination>,
