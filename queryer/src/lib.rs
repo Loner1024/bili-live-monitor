@@ -1,5 +1,5 @@
 use anyhow::Result;
-use duckdb::DuckdbConnectionManager;
+use duckdb::{params, DuckdbConnectionManager};
 use model::statistics;
 use parse::{BlockUserMessage, DanmuMessage, Message, SuperChatMessage};
 use r2d2::Pool;
@@ -181,9 +181,42 @@ impl Queryer {
                     danmu_people: row.get("danmu_people")?,
                     super_chat_total: row.get("super_chat_total")?,
                     super_chat_worth: row.get("super_chat_worth")?,
+                    timestamp: row.get("timestamp")?,
                 })
             },
         )?;
+        Ok(result)
+    }
+    pub fn query_danmu_statistics(
+        &self,
+        room_id: u64,
+        start: i64,
+        end: i64,
+    ) -> Result<Vec<statistics::StatisticsResult>> {
+        let start = get_local_midnight(start)?;
+        let end = get_local_midnight(end)?;
+        let table =
+            statistics::StatisticsScope::Day.remote_table_name(&self.bucket, room_id as i64);
+        let conn = self.pool.get()?;
+        let mut stmt = conn.prepare(
+            format!(
+                "SELECT * FROM '{}' WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp DESC",
+                table,
+            )
+            .as_str(),
+        )?;
+        let mut rows = stmt.query(params![start, end])?;
+        let mut result = vec![];
+        while let Some(row) = rows.next()? {
+            let data = statistics::StatisticsResult {
+                danmu_total: row.get("danmu_total")?,
+                danmu_people: row.get("danmu_people")?,
+                super_chat_total: row.get("super_chat_total")?,
+                super_chat_worth: row.get("super_chat_worth")?,
+                timestamp: row.get("timestamp")?,
+            };
+            result.push(data);
+        }
         Ok(result)
     }
 

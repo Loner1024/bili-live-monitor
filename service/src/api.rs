@@ -1,8 +1,9 @@
 use crate::error::AppError;
 use crate::model::{
     message_to_checker_response_date, message_vec_to_query_response_data_vec, CheckerRequest,
-    CheckerResponse, QueryBlockUserRequest, QueryBlockerResponse, QueryRequest, QueryResponse,
-    QueryStatisticsData, QueryStatisticsRequest, QueryStatisticsResponse,
+    CheckerResponse, DanmuStatisticsRequest, DanmuStatisticsResponse, QueryBlockUserRequest,
+    QueryBlockerResponse, QueryRequest, QueryResponse, QueryStatisticsData, QueryStatisticsRequest,
+    QueryStatisticsResponse,
 };
 use crate::AppState;
 use axum::extract::rejection::{PathRejection, QueryRejection};
@@ -202,6 +203,29 @@ pub async fn query_block_user(
             response
         }
     };
+    Ok(Json(response))
+}
+
+pub async fn query_danmu_statistics(
+    State(state): State<AppState>,
+    req: Result<Query<DanmuStatisticsRequest>, QueryRejection>,
+) -> Result<Json<DanmuStatisticsResponse>, AppError> {
+    let req = extract_req(req)?;
+    let response = match state
+        .queryer
+        .query_danmu_statistics(req.room_id, req.start, req.end)
+    {
+        Ok(data) => DanmuStatisticsResponse {
+            code: 0,
+            message: "success".to_string(),
+            data,
+        },
+        Err(e) => {
+            info!("query from db error: {}", e);
+            return Err(AppError::QueryError);
+        }
+    };
+
     Ok(Json(response))
 }
 

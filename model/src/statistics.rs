@@ -2,6 +2,7 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct StatisticsResult {
+    pub timestamp: i64,
     pub danmu_total: u64,      // 总弹幕数量
     pub danmu_people: u64,     // 总弹幕人数
     pub super_chat_total: u64, // 总SC数量

@@ -144,6 +144,7 @@ impl<'a> Statistics<'a> {
                     danmu_people: row.get("danmu_people")?,
                     super_chat_total: row.get("super_chat_total")?,
                     super_chat_worth: row.get("super_chat_worth")?,
+                    timestamp: row.get("timestamp")?,
                 })
             },
         )?;

@@ -66,6 +66,7 @@ async fn main() -> Result<()> {
         .route("/api/checker", get(api::checker))
         .route("/api/statistics", get(api::query_statistics))
         .route("/api/block_user", get(api::query_block_user))
+        .route("/api/danmu_statistics", get(api::query_danmu_statistics))
         .layer(cors)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(state);

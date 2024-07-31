@@ -179,3 +179,17 @@ impl From<&BlockUserMessage> for QueryBlockerResponseData {
         }
     }
 }
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct DanmuStatisticsRequest {
+    pub room_id: u64,
+    pub start: i64,
+    pub end: i64,
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct DanmuStatisticsResponse {
+    pub code: isize,
+    pub message: String,
+    pub data: Vec<statistics::StatisticsResult>,
+}
