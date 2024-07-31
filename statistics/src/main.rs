@@ -36,6 +36,14 @@ fn main() -> Result<()> {
                 info!("statistics room {} done", room);
             }
         }
+        "someday" => {
+            let timestamp = args[2].clone().parse::<i64>()?;
+            for room in rooms {
+                stats.init_table(room)?;
+                stats.statistics_day(timestamp, room)?;
+                info!("statistics room {} done", room);
+            }
+        }
         _ => {}
     };
     info!("statistics {} done", scope);
