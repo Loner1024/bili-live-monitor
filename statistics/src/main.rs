@@ -7,14 +7,15 @@ use utils::utils::{get_local_midnight, get_rooms, get_table_name, MessageType, O
 
 fn main() -> Result<()> {
     pretty_env_logger::init_timed();
-
+    use dotenv::dotenv;
+    dotenv().ok();
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
         return Err(anyhow!("please input scope"));
     }
 
     let scope = args[1].clone();
-    if scope != "today" && scope != "yesterday" {
+    if scope != "today" && scope != "yesterday" && scope != "someday" {
         return Err(anyhow!("scope must be today or yesterday"));
     }
     let rooms = get_rooms();
@@ -67,7 +68,7 @@ impl<'a> Statistics<'a> {
     }
 
     pub fn init_table(&self, room_id: i64) -> Result<()> {
-        let tables = vec![StatisticsScope::Day, StatisticsScope::Week];
+        let tables = vec![StatisticsScope::Day];
         for table in tables {
             // crate local table
             let local_table = table.local_table_name(room_id);
@@ -101,6 +102,7 @@ impl<'a> Statistics<'a> {
                     [],
                 )?;
             }
+            info!("[room: {}] local {} table init done", room_id, local_table);
         }
         Ok(())
     }
@@ -144,7 +146,7 @@ impl<'a> Statistics<'a> {
                     danmu_people: row.get("danmu_people")?,
                     super_chat_total: row.get("super_chat_total")?,
                     super_chat_worth: row.get("super_chat_worth")?,
-                    timestamp: row.get("timestamp")?,
+                    timestamp,
                 })
             },
         )?;
