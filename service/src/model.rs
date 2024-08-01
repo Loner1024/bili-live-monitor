@@ -182,7 +182,7 @@ impl From<&BlockUserMessage> for QueryBlockerResponseData {
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct DanmuStatisticsRequest {
-    pub room_id: u64,
+    pub room_id: i64,
     pub start: i64,
     pub end: i64,
 }

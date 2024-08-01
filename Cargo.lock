@@ -1434,6 +1434,7 @@ name = "model"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "utils",
 ]
 
 [[package]]
