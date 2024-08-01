@@ -73,16 +73,22 @@ pub fn remote_block_user_table_name(bucket: &str) -> String {
 
 // 获取表名
 pub fn get_table_name(bucket: &str, room_id: i64, timestamp: i64) -> Result<String> {
-    let datetime = Utc
+    Ok(format!(
+        "s3://{}/{}/{}/danmu.parquet",
+        bucket,
+        get_format_date(timestamp)?,
+        room_id
+    ))
+}
+
+pub fn get_format_date(timestamp: i64) -> Result<String> {
+    Ok(Utc
         .timestamp_opt(timestamp, 0)
         .single()
         .ok_or(anyhow!("Invalid timestamp"))?
         .with_timezone(&Local)
-        .format("%Y-%m-%d");
-    Ok(format!(
-        "s3://{}/{}/{}/danmu.parquet",
-        bucket, datetime, room_id
-    ))
+        .format("%Y-%m-%d")
+        .to_string())
 }
 
 pub fn is_new_day(old_timestamp: i64, new_timestamp: i64) -> Result<bool> {
@@ -108,6 +114,18 @@ pub fn get_local_midnight(timestamp: i64) -> Result<i64> {
         .ok_or(anyhow!("Invalid timestamp"))?;
 
     Ok(utc.timestamp())
+}
+
+pub fn get_every_day_with_start_end(start: i64, end: i64) -> Result<Vec<i64>> {
+    let mut start = get_local_midnight(start)?;
+    let end = get_local_midnight(end)?;
+    let mut result = vec![];
+    while start < end {
+        result.push(start);
+        start += 24 * 3600;
+    }
+    result.push(end);
+    Ok(result)
 }
 
 #[derive(Clone)]

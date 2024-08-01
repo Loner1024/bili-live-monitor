@@ -1,4 +1,5 @@
 use serde::Serialize;
+use utils::utils::get_format_date;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct StatisticsResult {
@@ -12,17 +13,19 @@ pub struct StatisticsResult {
 #[derive(Copy, Clone)]
 pub enum StatisticsScope {
     Day,
-    Week,
 }
 
 impl StatisticsScope {
-    pub fn remote_table_name(self, bucket: &str, room_id: i64) -> String {
+    pub fn remote_table_name(self, bucket: &str, room_id: i64, timestamp: i64) -> String {
         match self {
             StatisticsScope::Day => {
-                format!("s3://{}/statistics/{}/{}.parquet", bucket, room_id, "day")
-            }
-            StatisticsScope::Week => {
-                format!("s3://{}/statistics/{}/{}.parquet", bucket, room_id, "week")
+                format!(
+                    "s3://{}/statistics/{}/{}_{}.parquet",
+                    bucket,
+                    room_id,
+                    "day",
+                    get_format_date(timestamp).unwrap(),
+                )
             }
         }
     }
@@ -31,9 +34,6 @@ impl StatisticsScope {
         match self {
             StatisticsScope::Day => {
                 format!("{}_{}", "day", room_id)
-            }
-            StatisticsScope::Week => {
-                format!("{}_{}", "week", room_id)
             }
         }
     }
