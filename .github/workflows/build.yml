@@ -72,7 +72,7 @@ jobs:
         run: rustup toolchain install stable
       - uses: Swatinem/rust-cache@v2
       - name: Install Zig
-        run: snap install zig --classic --beta
+        run: sudo snap install zig --classic --beta
       - name: Install zigbuild
         run: cargo install --locked cargo-zigbuild
       - name: Build rust
