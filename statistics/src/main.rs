@@ -153,6 +153,7 @@ impl<'a> Statistics<'a> {
 mod tests {
     use super::*;
     use chrono::Utc;
+    use utils::utils::get_format_date;
 
     #[test]
     fn test_remote_table_name() {
@@ -161,7 +162,10 @@ mod tests {
         let table_name = StatisticsScope::Day.remote_table_name("test", 1, now);
         assert_eq!(
             table_name,
-            format!("s3://test/statistics/1/day_{}.parquet", day_midnight)
+            format!(
+                "s3://test/statistics/1/day_{}.parquet",
+                get_format_date(day_midnight).unwrap()
+            )
         );
     }
 }
