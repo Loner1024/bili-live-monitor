@@ -16,3 +16,4 @@ chrono = "0.4.38"
 utils = {path = "../utils"}
 futures = "0.3.30"
 base64 = "0.22.1"
+openssl = { version = "0.10", features = ["vendored"] }
