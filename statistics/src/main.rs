@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use chrono::{Duration, Local};
-use duckdb::{params, Connection};
+use duckdb::Connection;
 use log::{debug, info};
 use model::statistics::{StatisticsResult, StatisticsScope};
 use utils::utils::{get_local_midnight, get_rooms, get_table_name, MessageType, OssConfig};
@@ -72,36 +72,8 @@ impl<'a> Statistics<'a> {
         for table in tables {
             // crate local table
             let local_table = table.local_table_name(room_id);
-            // check remote table exist
-            let remote_table_name = table.remote_table_name(&self.bucket, room_id);
-            if self
-                .conn
-                .execute(
-                    &format!("SELECT COUNT(*) as count FROM '{remote_table_name}'"),
-                    [],
-                )
-                .is_err()
-            {
-                info!(
-                    "[room: {}] remote {} table not exist, create it and crate local table",
-                    room_id, remote_table_name
-                );
-                // create local table
-                self.conn
-                    .execute(self.get_create_ddl(local_table.as_str()).as_str(), [])?;
-                self.conn
-                    .execute(&format!("COPY {local_table} TO '{remote_table_name}'"), [])?;
-            } else {
-                // load remote data to local
-                info!(
-                    "[room: {}] remote {} table exist, load it to local table",
-                    room_id, remote_table_name
-                );
-                self.conn.execute(
-                    &format!("CREATE TABLE {local_table} AS SELECT * FROM '{remote_table_name}'"),
-                    [],
-                )?;
-            }
+            self.conn
+                .execute(self.get_create_ddl(local_table.as_str()).as_str(), [])?;
             info!("[room: {}] local {} table init done", room_id, local_table);
         }
         Ok(())
@@ -122,7 +94,7 @@ impl<'a> Statistics<'a> {
         let data_table = get_table_name(&self.bucket, room_id, timestamp)?;
         let table = StatisticsScope::Day;
         let local_table = table.local_table_name(room_id);
-        let remote_table = table.remote_table_name(&self.bucket, room_id);
+        let remote_table = table.remote_table_name(&self.bucket, room_id, timestamp);
 
         let result = self.conn.query_row(
             format!(
@@ -151,39 +123,12 @@ impl<'a> Statistics<'a> {
             },
         )?;
         debug!("statistics result: {:?}", result);
-
         // start transaction
-        let tx = self.conn.transaction()?;
-        // update record
-        let updated = tx.execute(
-            format!(
-                "UPDATE {}
-         SET
-            danmu_total = {},
-            danmu_people = {},
-            super_chat_total = {},
-            super_chat_worth = {},
-         WHERE
-            timestamp = ?",
-                local_table,
-                result.danmu_total,
-                result.danmu_people,
-                result.super_chat_total,
-                result.super_chat_worth
-            )
-            .as_str(),
-            params![timestamp],
-        )?;
-        debug!("try update");
-        // insert new record if not update
-        if updated == 0 {
-            tx.execute(
+        self.conn.execute(
                 format!("INSERT INTO {} (danmu_total, danmu_people, super_chat_total, super_chat_worth, timestamp)
                         VALUES ({}, {}, {}, {}, {})", local_table, result.danmu_total,result.danmu_people, result.super_chat_total, result.super_chat_worth, timestamp).as_str(),
                 [],
             )?;
-        }
-        tx.commit()?;
 
         self.conn
             .execute(&format!("COPY {local_table} TO '{remote_table}'"), [])?;
@@ -207,12 +152,20 @@ impl<'a> Statistics<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Utc;
+    use utils::utils::get_format_date;
 
     #[test]
     fn test_remote_table_name() {
-        let table_name = StatisticsScope::Day.remote_table_name("test", 1);
-        assert_eq!(table_name, "s3://test/statistics/1/day.parquet");
-        let table_name = StatisticsScope::Week.remote_table_name("test", 1);
-        assert_eq!(table_name, "s3://test/statistics/1/week.parquet");
+        let now = Utc::now().timestamp();
+        let day_midnight = get_local_midnight(now).unwrap();
+        let table_name = StatisticsScope::Day.remote_table_name("test", 1, now);
+        assert_eq!(
+            table_name,
+            format!(
+                "s3://test/statistics/1/day_{}.parquet",
+                get_format_date(day_midnight).unwrap()
+            )
+        );
     }
 }

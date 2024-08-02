@@ -71,8 +71,12 @@ jobs:
       - name: Install Rust
         run: rustup toolchain install stable
       - uses: Swatinem/rust-cache@v2
+      - name: Install Zig
+        run: sudo snap install zig --classic --beta
+      - name: Install zigbuild
+        run: cargo install --locked cargo-zigbuild
       - name: Build rust
-        run: cargo build -p crawler --bin danmu --release
+        run: cargo zigbuild -p crawler --bin danmu --release
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
