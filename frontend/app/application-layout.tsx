@@ -20,6 +20,7 @@ import {useTheme} from '@/context/ThemeContext';
 import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
 import {useRoom} from "@/context/RoomContext";
 import {usePathname, useRouter} from 'next/navigation';
+import {streamers} from "@/data/streamers"
 
 export class StatisticsResult {
     danmu_total: number = 0      // 总弹幕数量
@@ -105,21 +106,15 @@ export const ApplicationLayout = ({children}: { children: React.ReactNode }) => 
                                     <ChevronDownIcon/>
                                 </DropdownButton>
                                 <DropdownMenu className="min-w-80 lg:min-w-64" anchor="bottom start">
-                                    <DropdownItem onClick={() => handleClick(1)}>
-                                        <Avatar
-                                            src="https://i1.hdslb.com/bfs/face/bcdce44b8cbe699292165bb3dd274046f9352702.jpg@240w_240h_1c_1s_!web-avatar-space-header.avif"
-                                            className={"min-w-12 min-h-12"}
-                                            square/>
-                                        <DropdownLabel className={"text-lg"}>七七</DropdownLabel>
-                                    </DropdownItem>
-                                    {/*<DropdownDivider/>*/}
-                                    <DropdownItem onClick={() => handleClick(2)}>
-                                        <Avatar
-                                            src="https://i0.hdslb.com/bfs/face/81e91eba2eeefff79f4507fe80b00ac3eb8d1f16.jpg@240w_240h_1c_1s_!web-avatar-space-header.avif"
-                                            className={"min-w-12 min-h-12"}
-                                            square/>
-                                        <DropdownLabel className={"text-lg"}>小啾</DropdownLabel>
-                                    </DropdownItem>
+                                    {streamers.map((streamer) => {
+                                      return  streamer.id != 0 ? <DropdownItem key={streamer.id} onClick={() => handleClick(streamer.id)}>
+                                          <Avatar
+                                              src={streamer.small_avatar}
+                                              className={"min-w-12 min-h-12"}
+                                              square/>
+                                          <DropdownLabel className={"text-lg"}>{streamer.nickname}</DropdownLabel>
+                                      </DropdownItem> : null
+                                    })}
                                 </DropdownMenu>
                             </Dropdown>
                             <SidebarSection className={"mt-3"}>
