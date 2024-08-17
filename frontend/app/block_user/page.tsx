@@ -21,6 +21,7 @@ interface BlockUserData {
     operator: number,
     room_id: number,
     timestamp: number,
+    block_expired: number,
 }
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ const DataTable = () => {
                             <TableHeader>操作人</TableHeader>
                             <TableHeader>封禁直播间</TableHeader>
                             <TableHeader>封禁时间</TableHeader>
+                            <TableHeader>预计解封时间</TableHeader>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -83,6 +85,7 @@ const DataTable = () => {
                                 <TableCell>{data.operator == 1 ? "房管" : (data.operator == 2 ? "主播": "其他")}</TableCell>
                                 <TableCell>{streamerData.find(x => x.room_id == data.room_id)?.nickname}</TableCell>
                                 <TableCell>{getFormatTime(data.timestamp)}</TableCell>
+                                <TableCell>{getFormatTime(data.block_expired)}</TableCell>
                             </TableRow>
                         })}
                     </TableBody>
