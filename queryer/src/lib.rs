@@ -240,12 +240,14 @@ impl Queryer {
             let operator: i16 = row.get("operator")?;
             let timestamp = row.get("timestamp")?;
             let room_id = row.get("room_id")?;
+            let block_expired = row.get("block_expired")?;
             result.push(BlockUserMessage {
                 uid,
                 username,
                 operator: operator.into(),
                 timestamp,
                 room_id,
+                block_expired,
             });
         }
 

@@ -166,6 +166,7 @@ pub struct QueryBlockerResponseData {
     pub room_id: u64,
     pub operator: i16,
     pub timestamp: i64,
+    pub block_expired: i64,
 }
 
 impl From<&BlockUserMessage> for QueryBlockerResponseData {
@@ -173,9 +174,10 @@ impl From<&BlockUserMessage> for QueryBlockerResponseData {
         Self {
             uid: value.uid,
             username: value.username.clone(),
-            room_id: value.room_id,
+            room_id: value.room_id as u64,
             operator: i16::from(value.clone().operator),
             timestamp: value.timestamp,
+            block_expired: value.block_expired,
         }
     }
 }

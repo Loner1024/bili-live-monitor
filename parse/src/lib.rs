@@ -40,9 +40,10 @@ pub struct SuperChatMessage {
 pub struct BlockUserMessage {
     pub uid: u64,
     pub username: String,
-    pub room_id: u64,
     pub operator: BlockUserEnum,
     pub timestamp: i64,
+    pub room_id: i64,
+    pub block_expired: i64,
 }
 
 #[derive(Debug, Clone)]
@@ -268,6 +269,7 @@ pub struct BiliMessageData {
     pub uname: Option<String>,
     pub operator: Option<i16>,
     pub roomid: Option<u64>,
+    pub block_expired: Option<i64>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -352,16 +354,19 @@ impl BiliMessage {
             return Err(anyhow!("Not a block user message"));
         }
         let data = self.data.ok_or(anyhow!("Failed to get data"))?;
-
+        debug!("{:?}", data);
         Ok(Message::BlockUser(BlockUserMessage {
             uid: data.uid.ok_or(anyhow!("Failed to get uid"))?,
             username: data.uname.ok_or(anyhow!("Failed to get username"))?,
-            room_id: data.roomid.ok_or(anyhow!("Failed to get room_id"))?,
             operator: data
                 .operator
                 .ok_or(anyhow!("Failed to get operator"))?
                 .into(),
+            block_expired: data
+                .block_expired
+                .ok_or(anyhow!("Failed to get lock_expired"))?,
             timestamp: Utc::now().timestamp(),
+            room_id: data.roomid.ok_or(anyhow!("Failed to get room id"))? as i64,
         }))
     }
 }

@@ -16,7 +16,7 @@ use utils::utils::{get_rooms, is_new_day};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // dotenv::dotenv().ok();
+    dotenv::dotenv().ok();
     pretty_env_logger::init_timed();
     let cookies = String::from_utf8(
         base64::engine::general_purpose::STANDARD.decode(std::env::var("BILI_COOKIE")?)?,

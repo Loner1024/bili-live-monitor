@@ -74,6 +74,7 @@ impl<'a> Storage<'a> {
                 room_id BIGINT,
                 operator UTINYINT,
                 timestamp BIGINT,
+                block_expired BIGINT,
             )"
                 )
                 .as_str(),
@@ -113,13 +114,14 @@ impl<'a> Storage<'a> {
     pub fn create_block_user_message(&mut self, message: BlockUserMessage) -> Result<()> {
         let remote_block_user_table_name = remote_block_user_table_name(self.bucket.as_str());
         let stmt = format!(
-            "INSERT INTO 'block_user' (uid, username, room_id, operator, timestamp)
-             VALUES ({}, '{}', {}, {}, {})",
+            "INSERT INTO 'block_user' (uid, username, room_id, operator, timestamp, block_expired)
+             VALUES ({}, '{}', {}, {}, {}, {})",
             message.uid,
             message.username,
-            message.room_id,
+            self.room_id,
             i16::from(message.operator),
-            message.timestamp
+            message.timestamp,
+            message.block_expired,
         );
         self.conn.execute(stmt.as_str(), [])?;
         self.conn.execute(
@@ -246,11 +248,12 @@ mod tests {
         let block_user = BlockUserMessage {
             uid: 10000,
             username: "这条是新的".to_string(),
-            room_id: 22747736,
             operator: BlockUserEnum::Manager,
             timestamp: now.timestamp(),
+            room_id: 22747736,
+            block_expired: 123,
         };
-        let mut storage = Storage::new(&conn, block_user.room_id as i64, now.timestamp()).unwrap();
+        let mut storage = Storage::new(&conn, 22747736, now.timestamp()).unwrap();
         storage.create_block_user_message(block_user).unwrap();
     }
 
