@@ -27,7 +27,8 @@ export default function MySidebar({
     room_id: string;
 }>) {
     const {theme, toggleTheme} = useTheme();
-    const room_info = streamers.find((streamer) => streamer.room_id.toString() == room_id)
+    let room_info = streamers.find((streamer) => streamer.room_id.toString() == room_id)
+    room_info == undefined ? room_info = streamers.find((streamer) => streamer.room_id.toString() == "22747736") : room_info;
 
     return (
         <SidebarLayout
