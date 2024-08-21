@@ -60,7 +60,7 @@ export function DanmuChart(params: {room_id: string}) {
     const [activeChart, setActiveChart] =
         React.useState<keyof typeof chartConfig>("danmu_total")
     const room_id = params.room_id
-    const end = Date.now() / 1000
+    const end = Date.now() / 1000 - 24*60*60
     const start = end - 30*24*60*60
 
     let {data: statisticsData, error, isLoading: statisticsIsLoading} = useQuery<DanmuStatisticsResponse, Error>(
@@ -108,7 +108,7 @@ export function DanmuChart(params: {room_id: string}) {
                             <button
                                 key={chart}
                                 data-active={activeChart === chart}
-                                className="flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
+                                className="flex flex-1 md:flex-none flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
                                 onClick={() => setActiveChart(chart)}
                             >
                 <span className="text-xs text-muted-foreground">

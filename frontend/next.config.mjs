@@ -12,8 +12,8 @@ const nextConfig = {
         ],
     },
     env: {
-        // API_URL: "https://zongjian.uniix.dev"
-        API_URL: "http://localhost:8080"
+        API_URL: "https://zongjian.uniix.dev"
+        // API_URL: "http://localhost:8080"
     }
 };
 
