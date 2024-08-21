@@ -10,6 +10,8 @@ use axum::extract::rejection::{PathRejection, QueryRejection};
 use axum::extract::{Path, Query, State};
 use axum::Json;
 use chrono::Duration;
+use queryer::Queryer;
+use std::sync::Arc;
 use tracing::{debug, info};
 use utils::utils::{get_local_midnight, get_rooms, MessageType, Pagination};
 
@@ -211,22 +213,53 @@ pub async fn query_danmu_statistics(
     req: Result<Query<DanmuStatisticsRequest>, QueryRejection>,
 ) -> Result<Json<DanmuStatisticsResponse>, AppError> {
     let req = extract_req(req)?;
-    let response = match state
-        .queryer
-        .query_danmu_statistics(req.room_id, req.start, req.end)
-    {
+    let start = get_local_midnight(req.start).map_err(|_| AppError::QueryError)?;
+    let end = get_local_midnight(req.end).map_err(|_| AppError::QueryError)?;
+
+    println!("{} - {}", start, end);
+
+    let key = (req.room_id, start, end);
+    let response = match state.danmu_statistics_cache.get(&key).await {
+        Some(resp) => resp,
+        None => {
+            let response =
+                match query_danmu_statistics_data_from_db(state.queryer, req.room_id, start, end)
+                    .await
+                {
+                    Ok(resp) => resp,
+                    Err(e) => {
+                        info!("query from db error: {}", e);
+                        return Err(AppError::QueryError);
+                    }
+                };
+            state
+                .danmu_statistics_cache
+                .insert(key, response.clone())
+                .await;
+            response
+        }
+    };
+
+    Ok(Json(response))
+}
+
+pub async fn query_danmu_statistics_data_from_db(
+    queryer: Arc<Queryer>,
+    room_id: i64,
+    start: i64,
+    end: i64,
+) -> anyhow::Result<DanmuStatisticsResponse> {
+    let response = match queryer.query_danmu_statistics(room_id, start, end) {
         Ok(data) => DanmuStatisticsResponse {
             code: 0,
             message: "success".to_string(),
             data,
         },
         Err(e) => {
-            info!("query from db error: {}", e);
-            return Err(AppError::QueryError);
+            return Err(e);
         }
     };
-
-    Ok(Json(response))
+    Ok(response)
 }
 
 fn extract_req<T>(req: Result<Query<T>, QueryRejection>) -> Result<T, AppError> {
