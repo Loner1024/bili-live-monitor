@@ -1,6 +1,6 @@
 export const streamers = [
     {
-        "id": 1,
+        "id": 0,
         "nickname": "这是卢",
         "username": "不死鸟总监",
         "bilibili_link": "https://space.bilibili.com/406986743",
@@ -10,7 +10,7 @@ export const streamers = [
         "description": "关注总监喵~，关注不死鸟总监喵~"
     },
     {
-        "id": 2,
+        "id": 1,
         "nickname": "七七",
         "username": "桃宫七七酱",
         "bilibili_link": "https://space.bilibili.com/31734139",
@@ -20,13 +20,23 @@ export const streamers = [
         "description": "关注总监喵~，关注不死鸟总监喵~"
     },
     {
-        "id": 3,
+        "id": 2,
         "nickname": "小啾",
         "username": "小啾akio",
         "bilibili_link": "https://space.bilibili.com/415543548",
         "room_id": 21533102,
         "avatar": "https://i0.hdslb.com/bfs/face/81e91eba2eeefff79f4507fe80b00ac3eb8d1f16.jpg",
         "small_avatar": "https://i0.hdslb.com/bfs/face/81e91eba2eeefff79f4507fe80b00ac3eb8d1f16.jpg@240w_240h_1c_1s_!web-avatar-space-header.avif",
+        "description": "关注总监喵~，关注不死鸟总监喵~"
+    },
+    {
+        "id": 3,
+        "nickname": "咖米狸",
+        "username": "咖米狸",
+        "bilibili_link": "https://space.bilibili.com/7770395",
+        "room_id": 14733388,
+        "avatar": "https://i2.hdslb.com/bfs/face/12922a391f707c25ef37cd6e6e390bc61d2436cc.jpg",
+        "small_avatar": "https://i2.hdslb.com/bfs/face/12922a391f707c25ef37cd6e6e390bc61d2436cc.jpg@240w_240h_1c_1s_!web-avatar-space-header.avif",
         "description": "关注总监喵~，关注不死鸟总监喵~"
     }
 ]

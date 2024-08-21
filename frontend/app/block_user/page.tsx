@@ -6,6 +6,7 @@ import {Loading} from "@/components/loading";
 import {getFormatTime} from "@/utils/utils";
 import {streamers} from "@/data/streamers"
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from "@/components/pagination";
+import MySidebar from "@/components/func/sidebar";
 
 
 interface QueryResponseData {
@@ -21,6 +22,7 @@ interface BlockUserData {
     operator: number,
     room_id: number,
     timestamp: number,
+    block_expired: number,
 }
 
 const queryClient = new QueryClient();
@@ -62,48 +64,52 @@ const DataTable = () => {
         Array.from({length: (stop - start) / step + 1}, (_, i) => start + i * step);
 
     return (
-        <div className={"flex flex-col"}>
-            <div className={"flex flex-col mt-8"}>
-                {isLoading ? <Loading/> : null}
-                <Table hidden={isLoading}>
-                    <TableHead>
-                        <TableRow>
-                            <TableHeader>uid</TableHeader>
-                            <TableHeader>昵称</TableHeader>
-                            <TableHeader>操作人</TableHeader>
-                            <TableHeader>封禁直播间</TableHeader>
-                            <TableHeader>封禁时间</TableHeader>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {response?.data?.map((data: BlockUserData, index: number) => {
-                            return <TableRow key={index}>
-                                <TableCell>{data.uid}</TableCell>
-                                <TableCell className="font-medium">{data.username}</TableCell>
-                                <TableCell>{data.operator == 1 ? "房管" : (data.operator == 2 ? "主播": "其他")}</TableCell>
-                                <TableCell>{streamerData.find(x => x.room_id == data.room_id)?.nickname}</TableCell>
-                                <TableCell>{getFormatTime(data.timestamp)}</TableCell>
+        <MySidebar room_id={""}>
+            <div className={"flex flex-col"}>
+                <div className={"flex flex-col mt-8"}>
+                    {isLoading ? <Loading/> : null}
+                    <Table hidden={isLoading}>
+                        <TableHead>
+                            <TableRow>
+                                <TableHeader>uid</TableHeader>
+                                <TableHeader>昵称</TableHeader>
+                                <TableHeader>操作人</TableHeader>
+                                <TableHeader>封禁直播间</TableHeader>
+                                <TableHeader>封禁时间</TableHeader>
+                                <TableHeader>预计解封时间</TableHeader>
                             </TableRow>
-                        })}
-                    </TableBody>
-                </Table>
-                <Pagination className={"mt-8"}>
-                    <PaginationPrevious disable={currentPage == 1} onClick={handlePrevPage}/>
-                    <PaginationList>
-                        {
-                            range(startPage, endPage, 1).map((i) => (
-                                <PaginationPage className={"hover:cursor-pointer"} onClick={() => jumpToPage(i)}
-                                                key={i}
-                                                current={i + 1 === currentPage}>
-                                    {i + 1}
-                                </PaginationPage>
-                            ))
-                        }
-                    </PaginationList>
-                    <PaginationNext disable={currentPage == totalPage} onClick={handleNextPage}/>
-                </Pagination>
+                        </TableHead>
+                        <TableBody>
+                            {response?.data?.map((data: BlockUserData, index: number) => {
+                                return <TableRow key={index}>
+                                    <TableCell>{data.uid}</TableCell>
+                                    <TableCell className="font-medium">{data.username}</TableCell>
+                                    <TableCell>{data.operator == 1 ? "房管" : (data.operator == 2 ? "主播" : "其他")}</TableCell>
+                                    <TableCell>{streamerData.find(x => x.room_id == data.room_id)?.nickname}</TableCell>
+                                    <TableCell>{getFormatTime(data.timestamp)}</TableCell>
+                                    <TableCell>{getFormatTime(data.block_expired)}</TableCell>
+                                </TableRow>
+                            })}
+                        </TableBody>
+                    </Table>
+                    <Pagination className={"mt-8"}>
+                        <PaginationPrevious disable={currentPage == 1} onClick={handlePrevPage}/>
+                        <PaginationList>
+                            {
+                                range(startPage, endPage, 1).map((i) => (
+                                    <PaginationPage className={"hover:cursor-pointer"} onClick={() => jumpToPage(i)}
+                                                    key={i}
+                                                    current={i + 1 === currentPage}>
+                                        {i + 1}
+                                    </PaginationPage>
+                                ))
+                            }
+                        </PaginationList>
+                        <PaginationNext disable={currentPage == totalPage} onClick={handleNextPage}/>
+                    </Pagination>
+                </div>
             </div>
-        </div>
+        </MySidebar>
     );
 }
 

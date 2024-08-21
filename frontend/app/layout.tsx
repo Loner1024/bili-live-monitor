@@ -1,8 +1,6 @@
 import type {Metadata} from "next";
 import {Inter} from "next/font/google";
 import {ThemeProvider} from '@/context/ThemeContext';
-import {RoomProvider} from "@/context/RoomContext";
-import {ApplicationLayout} from "@/app/application-layout";
 import {GoogleAnalytics} from '@next/third-parties/google'
 import "./globals.css";
 import React from "react";
@@ -24,11 +22,7 @@ export default function RootLayout({
         <html lang="zh">
         <body className={inter.className}>
         <ThemeProvider>
-            <RoomProvider>
-                <ApplicationLayout>
                     {children}
-                </ApplicationLayout>
-            </RoomProvider>
         </ThemeProvider>
         </body>
         <GoogleAnalytics gaId="G-F6SKTB30TH"/>
