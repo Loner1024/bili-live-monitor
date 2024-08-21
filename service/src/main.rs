@@ -54,7 +54,7 @@ async fn main() -> Result<()> {
         .build();
 
     let danmu_statistics_cache = Cache::builder()
-        .time_to_live(Duration::minutes(10).to_std()?)
+        .time_to_live(Duration::hours(24).to_std()?)
         .build();
 
     let state = AppState {
