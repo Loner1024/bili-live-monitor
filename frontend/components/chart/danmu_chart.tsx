@@ -89,7 +89,7 @@ export function DanmuChart(params: {room_id: string}) {
             super_chat_total: chartData.reduce((acc, curr) => acc + curr.super_chat_total, 0),
             super_chat_worth: chartData.reduce((acc, curr) => acc + curr.super_chat_worth, 0),
         }),
-        []
+        [chartData]
     )
 
     return (
