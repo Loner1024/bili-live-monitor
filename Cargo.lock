@@ -2210,6 +2210,7 @@ dependencies = [
  "chrono",
  "dotenv",
  "duckdb",
+ "log",
  "model",
  "moka",
  "parse",

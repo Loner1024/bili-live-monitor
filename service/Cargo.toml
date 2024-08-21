@@ -23,3 +23,4 @@ tower-http = { version = "0.5.2", features = ["trace", "cors"] }
 parse = { path = "../parse" }
 model= { path = "../model"}
 moka = { version = "0.12.8", features = ["future"] }
+log = "0.4.22"

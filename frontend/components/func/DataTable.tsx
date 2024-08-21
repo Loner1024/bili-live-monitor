@@ -1,6 +1,6 @@
 'use client'
 import React, {useEffect, useState} from "react";
-import {getFormatTime, getTimestampSecs} from "@/utils/utils";
+import {getFormatTime, getTimestampSecs, StatisticsResult} from "@/utils/utils";
 import {QueryClient, QueryClientProvider, useQuery} from "@tanstack/react-query";
 import {Heading} from "@/components/heading";
 import {Stat} from "@/components/stat";
@@ -12,6 +12,7 @@ import {Button} from "@/components/button";
 import {Loading} from "@/components/loading";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/table";
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from "@/components/pagination";
+import {DanmuChart} from "@/components/chart/danmu_chart";
 
 const statisticsFetcher = async (params: {
     room_id: string,
@@ -111,7 +112,6 @@ export const DataTable = (params: { room_id: string }) => {
 
     let today = statisticsData?.data.today || new StatisticsResult()
     let yesterday = statisticsData?.data.yesterday || new StatisticsResult()
-
     const statisticsChange = calcChange(today, yesterday);
 
     useEffect(() => {
@@ -164,6 +164,9 @@ export const DataTable = (params: { room_id: string }) => {
 
     return (
         <QueryClientProvider client={queryClient}>
+            <div className={"mb-10"}>
+                <DanmuChart room_id={params.room_id}/>
+            </div>
             <div>
                 <Heading>Today</Heading>
                 <div className="mt-4 grid gap-8 sm:grid-cols-2 xl:grid-cols-4 dark:text-white">
@@ -278,12 +281,6 @@ function calcChange(today: StatisticsResult, yesterday: StatisticsResult): Stati
 }
 
 
-export class StatisticsResult {
-    danmu_total: number = 0      // 总弹幕数量
-    danmu_people: number = 0     // 总弹幕人数
-    super_chat_total: number = 0 // 总SC数量
-    super_chat_worth: number = 0 // 总SC人数
-}
 
 export class StatisticsData {
     today: StatisticsResult = new StatisticsResult()
