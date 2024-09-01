@@ -13,6 +13,7 @@ import {Loading} from "@/components/loading";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/table";
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from "@/components/pagination";
 import {DanmuChart} from "@/components/chart/danmu_chart";
+import Link from "next/link";
 
 const statisticsFetcher = async (params: {
     room_id: string,
@@ -235,7 +236,9 @@ export const DataTable = (params: { room_id: string }) => {
                     <TableBody>
                         {danmuData?.data?.map((danmu: DanmuMessage, index: number) => {
                             return <TableRow key={index}>
-                                <TableCell>{danmu.uid}</TableCell>
+                                <TableCell>
+                                    <Link className={"underline-offset-* text-cyan-700"} href={`/checker/${danmu.uid}`}>{danmu.uid}</Link>
+                                </TableCell>
                                 <TableCell className="font-medium">{danmu.username}</TableCell>
                                 <TableCell>{danmu.message}</TableCell>
                                 <TableCell
