@@ -7,6 +7,7 @@ import {getFormatTime} from "@/utils/utils";
 import {streamers} from "@/data/streamers"
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from "@/components/pagination";
 import MySidebar from "@/components/func/sidebar";
+import Link from "next/link";
 
 
 interface QueryResponseData {
@@ -82,7 +83,9 @@ const DataTable = () => {
                         <TableBody>
                             {response?.data?.map((data: BlockUserData, index: number) => {
                                 return <TableRow key={index}>
-                                    <TableCell>{data.uid}</TableCell>
+                                    <TableCell>
+                                        <Link className={"underline-offset-* text-cyan-700"} href={`/checker/${data.uid}`}>{data.uid}</Link>
+                                    </TableCell>
                                     <TableCell className="font-medium">{data.username}</TableCell>
                                     <TableCell>{data.operator == 1 ? "房管" : (data.operator == 2 ? "主播" : "其他")}</TableCell>
                                     <TableCell>{streamerData.find(x => x.room_id == data.room_id)?.nickname}</TableCell>
