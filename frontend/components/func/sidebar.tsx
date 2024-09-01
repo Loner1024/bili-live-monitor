@@ -19,6 +19,8 @@ import React from "react";
 import {useTheme} from "@/context/ThemeContext";
 import {Heading, Subheading} from "@/components/heading";
 import {TextLink} from "@/components/text";
+import {getTimestampSecs} from "@/utils/utils";
+const curDate = new Date();
 
 export default function MySidebar({
                                       children, room_id
@@ -79,7 +81,7 @@ export default function MySidebar({
                                 </DropdownMenu>
                             </Dropdown>
                             <SidebarSection className={"mt-3"}>
-                                <SidebarItem href={"/checker"}
+                                <SidebarItem href={`/checker/406986743?timestamp=${getTimestampSecs(curDate)}`}
                                              className={"flex justify-between gap-2 items-center font-medium"}>
                                     {/*<FontAwesomeIcon icon={faSearchengin} className={"size-8"}/>*/}
                                     <Search theme="outline" size="24" fill="#333"/>

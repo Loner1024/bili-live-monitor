@@ -10,6 +10,7 @@ import {parse} from "date-fns";
 import {getFormatTime, getTimestampSecs} from "@/utils/utils";
 import {streamers} from "@/data/streamers"
 import MySidebar from "@/components/func/sidebar";
+import {useRouter, useSearchParams} from "next/navigation";
 
 
 interface QueryParam {
@@ -37,22 +38,19 @@ const queryClient = new QueryClient();
 const streamerData = streamers
 const curDate = new Date();
 
-const DataTable = () => {
+const DataTable = ({params}: {params:{uid: number}}) => {
+    const router = useRouter();
     const queryClient = useQueryClient();
-    const [uid, setUid] = useState(406986743);
+    const [uid, setUid] = useState(params.uid);
     const [timestamp, setTimestamp] = useState(getTimestampSecs(curDate));
 
-    const [queryParam, setQueryParam] = useState<QueryParam>({
-        uid,
-        timestamp,
-    })
 
     const {data: response, isLoading} = useQuery<QueryResponseData, Error>(
         {
-            queryKey: [`data`, queryParam.uid, queryParam.timestamp],
+            queryKey: [`data`, timestamp],
             queryFn: () => fetcher({
-                uid: queryParam.uid,
-                timestamp: queryParam.timestamp,
+                uid: uid,
+                timestamp: timestamp,
             }),
             refetchOnWindowFocus: false,
         },
@@ -61,7 +59,7 @@ const DataTable = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setQueryParam({uid, timestamp})
+        router.push(`/checker/${uid}`);
     };
 
     return (
@@ -128,19 +126,16 @@ const DataTable = () => {
     );
 }
 
-const CheckerPage = () => {
+const CheckerPage = ({params}: {params: {uid: number}}) => {
     return (
         <QueryClientProvider client={queryClient}>
-            <DataTable/>
+            <DataTable params={params}/>
         </QueryClientProvider>
     )
 
 };
 
-const fetcher = async (params: {
-    uid: number,
-    timestamp: number,
-}): Promise<QueryResponseData> => {
+const fetcher = async (params: { timestamp: number; uid: number }): Promise<QueryResponseData> => {
     const query = new URLSearchParams({
         uid: params.uid.toString(),
         timestamp: params.timestamp.toString(),
