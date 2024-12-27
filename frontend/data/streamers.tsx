@@ -38,5 +38,15 @@ export const streamers = [
         "avatar": "https://i2.hdslb.com/bfs/face/12922a391f707c25ef37cd6e6e390bc61d2436cc.jpg",
         "small_avatar": "https://i2.hdslb.com/bfs/face/12922a391f707c25ef37cd6e6e390bc61d2436cc.jpg@240w_240h_1c_1s_!web-avatar-space-header.avif",
         "description": "关注总监喵~，关注不死鸟总监喵~"
+    },
+    {
+        "id": 4,
+        "nickname": "琵琶精",
+        "username": "陆识衣和王严言",
+        "bilibili_link": "https://space.bilibili.com/7847261",
+        "room_id": 24561443,
+        "avatar": "https://i0.hdslb.com/bfs/face/8385e456bc1b5b26f0c228b52a405f8aff577218.jpg",
+        "small_avatar": "https://i0.hdslb.com/bfs/face/8385e456bc1b5b26f0c228b52a405f8aff577218.jpg@128w_128h_1c_1s.webp",
+        "description": "关注总监喵~，关注不死鸟总监喵~"
     }
 ]
