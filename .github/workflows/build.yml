@@ -74,7 +74,7 @@ jobs:
       - name: Install Zig
         run: sudo snap install zig --classic --beta
       - name: Install zigbuild
-        run: cargo install cargo-zigbuild
+        run: cargo install cargo-zigbuild --force
       - name: Build rust
         run: cargo zigbuild -p crawler --bin danmu --release
       - name: Set up QEMU
