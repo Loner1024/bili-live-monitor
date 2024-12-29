@@ -2232,6 +2232,7 @@ dependencies = [
  "anyhow",
  "axum",
  "chrono",
+ "configs",
  "dotenv",
  "duckdb",
  "log",

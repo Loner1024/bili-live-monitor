@@ -6,6 +6,7 @@ use axum::http::Method;
 use axum::routing::get;
 use axum::Router;
 use chrono::{Duration, Utc};
+use configs::Configs;
 use duckdb::DuckdbConnectionManager;
 use moka::future::Cache;
 use queryer::Queryer;
@@ -29,6 +30,7 @@ struct AppState {
     statistics_cache: Arc<Cache<(i64, i64), QueryStatisticsData>>,
     block_user_cache: Arc<Cache<(usize, usize), QueryBlockerResponse>>,
     danmu_statistics_cache: Arc<Cache<(i64, i64, i64), DanmuStatisticsResponse>>,
+    configs: Arc<Configs>,
 }
 
 #[tokio::main]
@@ -59,11 +61,14 @@ async fn main() -> Result<()> {
         .time_to_live(Duration::hours(24).to_std()?)
         .build();
 
+    let configs = Configs::default();
+
     let state = AppState {
         queryer,
         statistics_cache: Arc::new(statistics_cache),
         block_user_cache: Arc::new(block_user_cache),
         danmu_statistics_cache: Arc::new(danmu_statistics_cache),
+        configs: Arc::new(configs),
     };
 
     let cache_state = state.clone();
@@ -116,6 +121,7 @@ async fn main() -> Result<()> {
         .route("/api/statistics", get(api::query_statistics))
         .route("/api/block_user", get(api::query_block_user))
         .route("/api/danmu_statistics", get(api::query_danmu_statistics))
+        .route("/api/streamers", get(api::query_streamers))
         .layer(cors)
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(state);

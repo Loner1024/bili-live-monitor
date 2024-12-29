@@ -195,3 +195,10 @@ pub struct DanmuStatisticsResponse {
     pub message: String,
     pub data: Vec<statistics::StatisticsResult>,
 }
+
+#[derive(Serialize, Debug)]
+pub struct StreamersResponse {
+    pub code: isize,
+    pub message: String,
+    pub data: Vec<configs::Streamer>,
+}

@@ -24,3 +24,4 @@ parse = { path = "../parse" }
 model= { path = "../model"}
 moka = { version = "0.12.8", features = ["future"] }
 log = "0.4.22"
+configs = {path = "../configs"}

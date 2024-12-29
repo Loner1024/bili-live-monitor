@@ -3,7 +3,7 @@ use crate::model::{
     message_to_checker_response_date, message_vec_to_query_response_data_vec, CheckerRequest,
     CheckerResponse, DanmuStatisticsRequest, DanmuStatisticsResponse, QueryBlockUserRequest,
     QueryBlockerResponse, QueryRequest, QueryResponse, QueryStatisticsData, QueryStatisticsRequest,
-    QueryStatisticsResponse,
+    QueryStatisticsResponse, StreamersResponse,
 };
 use crate::AppState;
 use axum::extract::rejection::{PathRejection, QueryRejection};
@@ -216,8 +216,6 @@ pub async fn query_danmu_statistics(
     let start = get_local_midnight(req.start).map_err(|_| AppError::QueryError)?;
     let end = get_local_midnight(req.end).map_err(|_| AppError::QueryError)?;
 
-    println!("{} - {}", start, end);
-
     let key = (req.room_id, start, end);
     let response = match state.danmu_statistics_cache.get(&key).await {
         Some(resp) => resp,
@@ -240,6 +238,18 @@ pub async fn query_danmu_statistics(
         }
     };
 
+    Ok(Json(response))
+}
+
+pub async fn query_streamers(
+    State(state): State<AppState>,
+) -> Result<Json<StreamersResponse>, AppError> {
+    let streamers = state.configs.streamers.clone();
+    let response = StreamersResponse {
+        code: 0,
+        message: "success".to_string(),
+        data: streamers,
+    };
     Ok(Json(response))
 }
 

@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::fs;
-use serde::Deserialize;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Configs {
@@ -8,7 +8,7 @@ pub struct Configs {
     pub streamers: Vec<Streamer>,
 }
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Streamer {
     pub id: usize,
     pub nickname: String,
