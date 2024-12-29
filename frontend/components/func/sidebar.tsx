@@ -18,35 +18,7 @@ import React from "react";
 import {useTheme} from "@/context/ThemeContext";
 import {Heading, Subheading} from "@/components/heading";
 import {TextLink} from "@/components/text";
-import {getTimestampSecs} from "@/utils/utils";
-const curDate = new Date();
-
-type StreamersResponse = {
-    code: number
-    message: string
-    data: Streamers[]
-}
-
-type Streamers = {
-    id: number;
-    nickname: string
-    username: string
-    bilibili_link: string
-    room_id: number
-    avatar: string
-    small_avatar: string
-    description: string
-}
-
-const fetcher = async (): Promise<StreamersResponse> => {
-    const response = await fetch(`${process.env.API_URL}/api/streamers`);
-
-    if (!response.ok) {
-        throw new Error('Network response was not ok');
-    }
-
-    return response.json();
-};
+import {useStreamer} from "@/context/StreamersContext";
 
 export default function MySidebar({
                                             children, room_id
@@ -55,14 +27,7 @@ export default function MySidebar({
     room_id: string;
 }>) {
     const {theme, toggleTheme} = useTheme();
-    let streamers: Streamers[] = [];
-    if (localStorage.getItem("streamers") == null) {
-        fetcher().then(response => {
-            streamers = response.data;
-            localStorage.setItem("streamers", JSON.stringify(streamers));
-        });
-    }
-    streamers = JSON.parse(localStorage.getItem("streamers") || "");
+    const {streamers} = useStreamer();
 
     let room_info = streamers.find((streamer) => streamer.room_id.toString() == room_id);
     room_info == undefined ? room_info = streamers.find((streamer) => streamer.room_id.toString() == "22747736") : room_info;
@@ -116,7 +81,7 @@ export default function MySidebar({
                                 </DropdownMenu>
                             </Dropdown>
                             <SidebarSection className={"mt-3"}>
-                                <SidebarItem href={`/checker/406986743?timestamp=${getTimestampSecs(curDate)}`}
+                                <SidebarItem href={`/checker/406986743`}
                                              className={"flex justify-between gap-2 items-center font-medium"}>
                                     {/*<FontAwesomeIcon icon={faSearchengin} className={"size-8"}/>*/}
                                     <Search theme="outline" size="24" fill="#333"/>
@@ -146,11 +111,10 @@ export default function MySidebar({
                         </div>
                     </SidebarFooter>
                 </Sidebar>
-            }
+        }
         >
             {/* The page content */}
             {children}
         </SidebarLayout>
-
     );
 }

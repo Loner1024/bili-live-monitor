@@ -4,6 +4,7 @@ import {ThemeProvider} from '@/context/ThemeContext';
 import {GoogleAnalytics} from '@next/third-parties/google'
 import "./globals.css";
 import React from "react";
+import {StreamerProvider} from "@/context/StreamersContext";
 
 const inter = Inter({subsets: ["latin"]});
 
@@ -21,9 +22,11 @@ export default function RootLayout({
     return (
         <html lang="zh">
         <body className={inter.className}>
+        <StreamerProvider>
         <ThemeProvider>
                     {children}
         </ThemeProvider>
+        </StreamerProvider>
         </body>
         <GoogleAnalytics gaId="G-F6SKTB30TH"/>
         </html>

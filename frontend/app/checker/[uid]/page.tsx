@@ -11,6 +11,7 @@ import {getFormatTime, getTimestampSecs} from "@/utils/utils";
 import {streamers} from "@/data/streamers"
 import MySidebar from "@/components/func/sidebar";
 import {useRouter, useSearchParams} from "next/navigation";
+import {useStreamer} from "@/context/StreamersContext";
 
 
 interface QueryParam {
@@ -35,7 +36,6 @@ interface CheckerData {
 }
 
 const queryClient = new QueryClient();
-const streamerData = streamers
 const curDate = new Date();
 
 const DataTable = ({params}: {params:{uid: number}}) => {
@@ -43,7 +43,7 @@ const DataTable = ({params}: {params:{uid: number}}) => {
     const queryClient = useQueryClient();
     const [uid, setUid] = useState(params.uid);
     const [timestamp, setTimestamp] = useState(getTimestampSecs(curDate));
-
+    const {streamers: streamerData} = useStreamer()
 
     const {data: response, isLoading} = useQuery<QueryResponseData, Error>(
         {

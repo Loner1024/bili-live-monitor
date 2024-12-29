@@ -8,6 +8,7 @@ import {streamers} from "@/data/streamers"
 import {Pagination, PaginationList, PaginationNext, PaginationPage, PaginationPrevious} from "@/components/pagination";
 import MySidebar from "@/components/func/sidebar";
 import Link from "next/link";
+import {useStreamer} from "@/context/StreamersContext";
 
 
 interface QueryResponseData {
@@ -27,12 +28,12 @@ interface BlockUserData {
 }
 
 const queryClient = new QueryClient();
-const streamerData = streamers
 
 const DataTable = () => {
     const queryClient = useQueryClient();
     const [limit] = useState(15);
     const [offset, setOffset] = useState(0);
+    const {streamers: streamerData} = useStreamer()
 
     const {data: response, isLoading} = useQuery<QueryResponseData, Error>(
         {
