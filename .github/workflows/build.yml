@@ -94,7 +94,7 @@ jobs:
           echo "TIME=$TIME" >> $GITHUB_ENV
           echo "TIME=$TIME" >> $GITHUB_OUTPUT
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./crawler/Dockerfile
@@ -134,7 +134,7 @@ jobs:
           echo "TIME=$TIME" >> $GITHUB_ENV
           echo "TIME=$TIME" >> $GITHUB_OUTPUT
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./service/Dockerfile
@@ -174,7 +174,7 @@ jobs:
           echo "TIME=$TIME" >> $GITHUB_ENV
           echo "TIME=$TIME" >> $GITHUB_OUTPUT
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./statistics/Dockerfile
