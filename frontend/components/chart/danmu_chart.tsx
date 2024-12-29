@@ -75,7 +75,8 @@ export function DanmuChart(params: {room_id: string}) {
         queryClient
     );
 
-    const chartData = statisticsData?.data || [];
+    // const chartData = statisticsData?.data || [];
+    const chartData = React.useMemo(() => statisticsData?.data || [], [statisticsData]);
 
     const formattedChartData = chartData.map((data) => ({
         ...data,

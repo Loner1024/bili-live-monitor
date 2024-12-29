@@ -6,7 +6,7 @@ export default function Home() {
     const router = useRouter();
     useEffect(() => {
         router.push('/22747736');
-    }, []);
+    }, [router]);
 
     return null;  // 空的组件，因为页面会被重定向
 }
