@@ -1,3 +1,4 @@
+use std::fs;
 use serde::Deserialize;
 
 #[derive(Clone, Deserialize, Debug)]
@@ -21,7 +22,10 @@ pub struct Streamer {
 
 impl Default for Configs {
     fn default() -> Self {
-        let file_path = "./configs.toml";
+        let mut file_path = "./configs.toml";
+        if !fs::exists(file_path).unwrap() {
+            file_path = "/etc/configs/configs.toml"
+        }
         let toml_string = std::fs::read_to_string(file_path).unwrap();
         let mut configs: Configs = toml::from_str(&toml_string).unwrap();
         configs.rooms = configs.streamers.iter().map(|x| x.room_id).collect();
