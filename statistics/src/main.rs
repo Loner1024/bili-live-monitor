@@ -18,7 +18,7 @@ fn main() -> Result<()> {
     if scope != "today" && scope != "yesterday" && scope != "someday" {
         return Err(anyhow!("scope must be today or yesterday"));
     }
-    let rooms = get_rooms();
+    let rooms = get_rooms()?;
     let mut conn = Connection::open_in_memory()?;
     let mut stats = Statistics::new(&mut conn)?;
     info!("start statistics {}", scope);

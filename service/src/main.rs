@@ -35,6 +35,8 @@ struct AppState {
 async fn main() -> Result<()> {
     use dotenv::dotenv;
     dotenv().ok();
+    let rooms = get_rooms()?;
+    println!("{:?}", rooms);
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -79,7 +81,7 @@ async fn main() -> Result<()> {
             }
         };
         let start = end - 30 * 24 * 60 * 60;
-        for room_id in get_rooms() {
+        for room_id in rooms {
             match query_danmu_statistics_data_from_db(
                 cache_state.queryer.clone(),
                 room_id,

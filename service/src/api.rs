@@ -87,7 +87,7 @@ pub async fn checker(
     let storage = state.queryer;
     let req = extract_req(req)?;
     let mut result = vec![];
-    for room in get_rooms() {
+    for room in get_rooms().map_err(|_| AppError::QueryError)? {
         match storage.query(room, req.timestamp, None, Some(req.uid), None, None, None) {
             Ok(data) => {
                 for message in data {

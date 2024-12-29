@@ -24,7 +24,7 @@ async fn main() -> Result<()> {
     // let cookies = std::env::var("BILI_COOKIE")?;
     debug!("{}", cookies);
 
-    let room_ids = get_rooms(); // 传入多个 room_id
+    let room_ids = get_rooms()?; // 传入多个 room_id
     info!("获取到 {} 个 room {:?}", room_ids.len(), room_ids);
 
     let local_set = LocalSet::new();

@@ -1,13 +1,15 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, FixedOffset, Local, TimeZone, Utc};
+use configs::Configs;
 use duckdb::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
 use duckdb::{Connection, DuckdbConnectionManager};
 use r2d2::PooledConnection;
 use std::env;
 use std::fmt::{Display, Formatter};
 
-pub fn get_rooms() -> Vec<i64> {
-    vec![22747736, 21533102, 23649609, 14733388, 24561443]
+pub fn get_rooms() -> Result<Vec<i64>> {
+    let configs = Configs::default();
+    Ok(configs.rooms)
 }
 
 #[derive(Default)]
