@@ -14,7 +14,6 @@ import {Avatar} from "@/components/avatar";
 import {Dropdown, DropdownButton, DropdownItem, DropdownLabel, DropdownMenu} from "@/components/dropdown";
 import {BackOne, Bug, Search, TvOne} from "@icon-park/react";
 import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
-import {streamers} from "@/data/streamers";
 import React from "react";
 import {useTheme} from "@/context/ThemeContext";
 import {Heading, Subheading} from "@/components/heading";
@@ -22,14 +21,50 @@ import {TextLink} from "@/components/text";
 import {getTimestampSecs} from "@/utils/utils";
 const curDate = new Date();
 
+type StreamersResponse = {
+    code: number
+    message: string
+    data: Streamers[]
+}
+
+type Streamers = {
+    id: number;
+    nickname: string
+    username: string
+    bilibili_link: string
+    room_id: number
+    avatar: string
+    small_avatar: string
+    description: string
+}
+
+const fetcher = async (): Promise<StreamersResponse> => {
+    const response = await fetch(`${process.env.API_URL}/api/streamers`);
+
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+
+    return response.json();
+};
+
 export default function MySidebar({
-                                      children, room_id
-                                  }: Readonly<{
+                                            children, room_id
+                                        }: Readonly<{
     children: React.ReactNode;
     room_id: string;
 }>) {
     const {theme, toggleTheme} = useTheme();
-    let room_info = streamers.find((streamer) => streamer.room_id.toString() == room_id)
+    let streamers: Streamers[] = [];
+    if (localStorage.getItem("streamers") == null) {
+        fetcher().then(response => {
+            streamers = response.data;
+            localStorage.setItem("streamers", JSON.stringify(streamers));
+        });
+    }
+    streamers = JSON.parse(localStorage.getItem("streamers") || "");
+
+    let room_info = streamers.find((streamer) => streamer.room_id.toString() == room_id);
     room_info == undefined ? room_info = streamers.find((streamer) => streamer.room_id.toString() == "22747736") : room_info;
 
     return (
