@@ -96,7 +96,7 @@ pub async fn checker(
             }
             Err(e) => {
                 info!("query from db error: {}", e);
-                return Err(AppError::QueryError);
+                // return Err(AppError::QueryError);
             }
         };
     }
