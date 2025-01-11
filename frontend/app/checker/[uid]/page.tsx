@@ -62,6 +62,13 @@ const DataTable = ({params}: {params:{uid: number}}) => {
         router.push(`/checker/${uid}`);
     };
 
+    const parseUid = (uid: string): number => {
+        if (uid.startsWith("UID:")) {
+            return parseInt(uid.substring(4));
+        }
+        return parseInt(uid);
+    };
+
     return (
         <MySidebar room_id={""}>
             <div className={"flex flex-col"}>
@@ -76,7 +83,7 @@ const DataTable = ({params}: {params:{uid: number}}) => {
                             <InputGroup>
                                 <MagnifyingGlassIcon/>
                                 <Input
-                                    onChange={(e) => setUid(parseInt(e.target.value))}
+                                    onChange={(e) => setUid(parseUid(e.target.value))}
                                     name="search"
                                     placeholder="输入 uid 查询" aria-label="Search"/>
                             </InputGroup>
