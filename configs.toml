@@ -57,3 +57,33 @@ room_id = 1804468097
 avatar = "https://i2.hdslb.com/bfs/face/5c88955b7bc6154c7da824140af02dfd074ab621.webp"
 small_avatar = "https://i2.hdslb.com/bfs/face/5c88955b7bc6154c7da824140af02dfd074ab621.webp@128w_128h_1c_1s.webp"
 description = "关注总监喵~，关注不死鸟总监喵~"
+
+[[streamers]]
+id = 6
+nickname = "黑粉头子"
+username = "苍天哥"
+bilibili_link = "https://space.bilibili.com/671308"
+room_id = 889821
+avatar = "https://i1.hdslb.com/bfs/face/642f75c345c92a223f7a744b1a5ca9d19f55398e.jpg"
+small_avatar = "https://i1.hdslb.com/bfs/face/642f75c345c92a223f7a744b1a5ca9d19f55398e.jpg@128w_128h_1c_1s.webp"
+description = "关注总监喵~，关注不死鸟总监喵~"
+
+[[streamers]]
+id = 7
+nickname = "球仔"
+username = "球仔baby"
+bilibili_link = "https://space.bilibili.com/3546826892380519"
+room_id = 1991476869
+avatar = "https://i0.hdslb.com/bfs/face/08cff6117b96cf43be52c048f74c29935398cf20.jpg"
+small_avatar = "https://i0.hdslb.com/bfs/face/08cff6117b96cf43be52c048f74c29935398cf20.jpg@128w_128h_1c_1s.webp"
+description = "关注总监喵~，关注不死鸟总监喵~"
+
+[[streamers]]
+id = 8
+nickname = "粉毛3.0"
+username = "有希小酱"
+bilibili_link = "https://space.bilibili.com/6964745"
+room_id = 5611881
+avatar = "https://i0.hdslb.com/bfs/face/eb7cee4cb1426647ba917de630ee07e407a29ca9.webp"
+small_avatar = "https://i0.hdslb.com/bfs/face/eb7cee4cb1426647ba917de630ee07e407a29ca9.webp@128w_128h_1c_1s.webp"
+description = "关注总监喵~，关注不死鸟总监喵~"
