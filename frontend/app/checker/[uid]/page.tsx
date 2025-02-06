@@ -63,7 +63,7 @@ const DataTable = ({params}: {params:{uid: number}}) => {
     };
 
     const parseUid = (uid: string): number => {
-        if (uid.startsWith("UID:")) {
+        if (uid.toUpperCase().startsWith("UID:")) {
             return parseInt(uid.substring(4));
         }
         return parseInt(uid);
