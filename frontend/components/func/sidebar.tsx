@@ -14,7 +14,7 @@ import {Avatar} from "@/components/avatar";
 import {Dropdown, DropdownButton, DropdownItem, DropdownLabel, DropdownMenu} from "@/components/dropdown";
 import {BackOne, Bug, Search, TvOne} from "@icon-park/react";
 import {ChevronDownIcon, MoonIcon, SunIcon} from "@heroicons/react/24/solid";
-import React from "react";
+import React, {useEffect} from "react";
 import {useTheme} from "@/context/ThemeContext";
 import {Heading, Subheading} from "@/components/heading";
 import {TextLink} from "@/components/text";
@@ -31,6 +31,9 @@ export default function MySidebar({
 
     let room_info = streamers.find((streamer) => streamer.room_id.toString() == room_id);
     room_info == undefined ? room_info = streamers.find((streamer) => streamer.room_id.toString() == "22747736") : room_info;
+    useEffect(() => {
+        document.title = room_info?.nickname + "的弹幕监控";
+    }, [room_info]);
 
     return (
         <SidebarLayout
