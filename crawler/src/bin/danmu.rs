@@ -123,6 +123,7 @@ async fn process_room(
                             storage.create_super_chat_message(msg)?;
                         }
                         Message::BlockUser(msg) => {
+                            info!("Block User Message: {:?}", msg);
                             storage.create_block_user_message(msg)?;
                         }
                         Message::Default => {},

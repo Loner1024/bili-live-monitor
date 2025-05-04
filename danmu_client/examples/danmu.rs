@@ -1,6 +1,8 @@
+use base64::Engine;
 use chrono::{DateTime, Local};
 use danmu_client::danmu::Client;
 use dotenv::dotenv;
+use log::debug;
 use owo_colors::OwoColorize;
 use parse::Message;
 
@@ -8,9 +10,11 @@ use parse::Message;
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     pretty_env_logger::init();
-    let cookies = std::env::var("BILI_COOKIE").unwrap();
+    let cookies = String::from_utf8(
+        base64::engine::general_purpose::STANDARD.decode(std::env::var("BILI_COOKIE")?)?,
+    )?;
 
-    let roomid = 22747736;
+    let roomid = 128844;
 
     let client = Client::new(roomid, &cookies)?;
     let mut rx = client.listen().await?;
@@ -48,6 +52,15 @@ fn print_danmu(message: Message) {
                 datetime_local.format("%H:%M:%S").bright_yellow(),
                 online_count.count
             );
+        }
+        Message::BlockUser(block_user) => {
+            let datetime_local = timestamp_to_local_time(block_user. timestamp as u64);
+            println!(
+                "[{}] - 用户被封禁: {}",
+                datetime_local.format("%H:%M:%S").bright_yellow(),
+                block_user.username.purple(),
+            );
+            debug!("{:?}", block_user);
         }
         _ => {}
     }
