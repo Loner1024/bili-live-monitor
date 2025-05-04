@@ -54,7 +54,7 @@ fn print_danmu(message: Message) {
             );
         }
         Message::BlockUser(block_user) => {
-            let datetime_local = timestamp_to_local_time(block_user. timestamp as u64);
+            let datetime_local = timestamp_to_local_time(block_user.timestamp as u64);
             println!(
                 "[{}] - 用户被封禁: {}",
                 datetime_local.format("%H:%M:%S").bright_yellow(),
