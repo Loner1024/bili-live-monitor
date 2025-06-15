@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use chrono::Utc;
-use log::{debug, error};
+use log::{debug, error, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::io::Read;
@@ -109,7 +109,7 @@ impl TryFrom<&[u8]> for Message {
             | "LIKE_INFO_V3_UPDATE" => Ok(Message::Default),
 
             _ => {
-                debug!("Unsupported message: {}", s);
+                warn!("Unsupported message: {}", s);
                 Ok(Message::Default)
             }
         }
@@ -158,11 +158,6 @@ fn parse_command_packet(packet: &[u8]) -> Result<Message> {
 }
 
 pub fn parse_message(header: Header, origin_data: &[u8]) -> Result<Vec<Message>> {
-    debug!("{:?}", header);
-    for data in origin_data {
-        debug!("{:02X}", data)
-    }
-
     // 3 is heartbeat packet
     if header.msg_type == 3 {
         return Ok(vec![]);

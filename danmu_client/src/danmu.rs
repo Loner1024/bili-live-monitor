@@ -1,4 +1,5 @@
-use anyhow::Result;
+use crate::wbi::{encode_wbi, get_wbi_keys};
+use anyhow::{anyhow, Result};
 use cookie::Cookie;
 use log::{debug, error, info};
 use parse::{parse_message, Message};
@@ -156,17 +157,31 @@ impl Client {
             .cookie_store(true)
             .default_headers(self.cookies.clone())
             .build()?;
+        let params = self.get_param_with_wbi().await?;
         let url = format!(
-            "https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id={}&type=0",
-            self.room_id
+            "https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?{}",
+            params
         );
-        let resp = client
+        match client
             .get(&url)
             .send()
             .await?
             .json::<GetKeyResponse>()
-            .await?;
-        Ok(resp)
+            .await
+        {
+            Ok(response) => Ok(response),
+            Err(err) => Err(anyhow!("get danmu info err: {}", err)),
+        }
+    }
+
+    async fn get_param_with_wbi(&self) -> Result<String> {
+        let params = vec![
+            ("id", self.room_id.to_string()),
+            ("type", "0".to_string()),
+            ("web_location", "444.8".to_string()),
+        ];
+        let keys = get_wbi_keys(self.cookies.clone()).await?;
+        Ok(encode_wbi(params, keys))
     }
 }
 
