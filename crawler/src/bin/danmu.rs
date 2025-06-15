@@ -113,6 +113,7 @@ async fn process_room(
                         storage.switch_new_date(now.timestamp())?;
                         info!("切换到新的日期: {}", now);
                     }
+                    debug!("received message: {:?}", message);
                     match message {
                         Message::Danmu(msg) => {
                             storage.create_danmu_message(msg)?;
