@@ -158,11 +158,10 @@ fn parse_command_packet(packet: &[u8]) -> Result<Message> {
 }
 
 pub fn parse_message(header: Header, origin_data: &[u8]) -> Result<Vec<Message>> {
-    // debug!("{:?}", header);
-    // for i in 0..origin_data.len() {
-    //     print!("{:02X}", origin_data[i])
-    // }
-    // println!();
+    debug!("{:?}", header);
+    for i in 0..origin_data.len() {
+        debug!("{:02X}", origin_data[i])
+    }
 
     // 3 is heartbeat packet
     if header.msg_type == 3 {
